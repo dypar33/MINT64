@@ -36,13 +36,11 @@ START:
     push 0
     push 0
     call PRINT_M
-    add sp, 6
     
     push IMAGE_LODING_M
     push 1
     push 0
     call PRINT_M
-    add sp, 6
 
 ; disk 리셋
 RESET_DISK:
@@ -106,9 +104,8 @@ READ_DISK_DATA:
 READ_DISK_DATA_END:
     push LOADING_COMPLETE_M
     push 1
-    push 20
+    push 40
     call PRINT_M
-    add sp, 6
 
     jmp 0x1000:0x0000 ; 로딩한 os 이미지 실행
 
@@ -176,7 +173,7 @@ PRINT_M:
     pop es
 
     pop bp
-    ret
+    ret 6
 
 
 
