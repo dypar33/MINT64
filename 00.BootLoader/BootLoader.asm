@@ -5,7 +5,7 @@ SECTION .text
 
 jmp 0x07C0:START
 
-TOTALSECTORCOUNT: dw 1024
+TOTALSECTORCOUNT: dw 1
 
 START:
     ; 세그먼트 세팅

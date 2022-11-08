@@ -12,7 +12,7 @@ Kernel32:
 
 Disk.img: BootLoader Kernel32
 	@echo Disk Image Build Start
-	cat 00.BootLoader/BootLoader.bin 01.Kernel32/VirtualOS.bin > Disk.img
+	cat 00.BootLoader/BootLoader.bin 01.Kernel32/Kernel32.bin > Disk.img
 	@echo Disk Image Build End
 
 clean:
