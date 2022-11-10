@@ -40,7 +40,7 @@ PROTECTED_MODE:
     push 0
     call PRINT_M
 
-    jmp $
+    jmp dword 0x08:0x10200 ; cs 레지스터를 커널 코드 디스크립터(0x8)로 변경
 
 PRINT_M:
     push ebp

@@ -10,9 +10,9 @@ Kernel32:
 	make -C 01.Kernel32
 	@echo Kernel Build End
 
-Disk.img: BootLoader Kernel32
+Disk.img: 00.BootLoader/BootLoader.bin 01.Kernel32/Kernel32.bin
 	@echo Disk Image Build Start
-	cat 00.BootLoader/BootLoader.bin 01.Kernel32/Kernel32.bin > Disk.img
+	python3 00.ImageMaker/ImageMaker.py
 	@echo Disk Image Build End
 
 clean:
