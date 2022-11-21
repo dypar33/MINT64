@@ -10,6 +10,21 @@ START:
     mov ds, ax
     mov es, ax
 
+    ; activate A20 Gate
+    mov ax, 0x2401
+    int 0x15
+
+    jc .A20_FAILED
+    jmp .SWICH_PROTECTED_MODE
+
+.A20_FAILED:
+    ; 시스템 컨트롤 모드로 재시도
+    in al, 0x92
+    or al, 0x02
+    and al, 0xFE
+    out 0x92, al
+
+.SWICH_PROTECTED_MODE:
     cli ; 인터럽트가 발생하지 않도록
     lgdt [GDTR] ; GDTR 테이블 로드
 
@@ -18,12 +33,13 @@ START:
     mov cr0, eax 
 
     ; 보호 모드 코드의 offset을 구하고 base addr인 0x10000을 더함
-    jmp dword 0x08: (PROTECTED_MODE - $$ + 0x10000)
+    jmp dword 0x18: (PROTECTED_MODE - $$ + 0x10000)
+
 
 [BITS 32]
 PROTECTED_MODE:
     ; GDTR의 보호 모드 커널용 데이터 세그먼트 디스크립터 offset을 세그먼트 셀렉터들에 설정
-    mov ax, 0x10 
+    mov ax, 0x20 
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -40,12 +56,12 @@ PROTECTED_MODE:
     push 0
     call PRINT_M
 
-    jmp dword 0x08:0x10200 ; cs 레지스터를 커널 코드 디스크립터(0x8)로 변경
+    jmp dword 0x18:0x10200 ; cs 레지스터를 커널 코드 디스크립터(0x8)로 변경
 
 PRINT_M:
     push ebp
     mov ebp, esp
-
+    
     push esi
     push edi
     push eax
@@ -107,6 +123,22 @@ GDT:
         db 0x00
         db 0x00 
         db 0x00 
+
+    IA_32eCODEREGISTER:
+        dw 0xFFFF ; Limit [15:0]
+        dw 0x0000 ; Base [15:0]
+        db 0x00 ; Base [23:16]
+        db 0x9A ; P =1, DPL = 0, code segment, R/X
+        db 0xAF ; G=1, D=0, L=1, Limit[19:16]
+        db 0x00 ; Base [31:24]
+
+    IA_32eDATAREGISTER:
+        dw 0xFFFF ; Limit [15:0]
+        dw 0x0000 ; Base [15:0]
+        db 0x00 ; Base [23:16]
+        db 0x92 ; P =1, DPL = 0, code segment, R/W
+        db 0xAF ; G=1, D=0, L=1, Limit[19:16]
+        db 0x00 ; Base [31:24]
 
     CODEDESCRIPTOR:
         dw 0xFFFF ; Limit [15:0]

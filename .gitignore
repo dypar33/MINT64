@@ -1,0 +1,4 @@
+Disk.img
+00.BootLoader/Temp
+01.Kernel32/Temp
+02.Kernel64/Temp

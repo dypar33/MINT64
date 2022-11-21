@@ -42,7 +42,7 @@ jmp 0x07c0:.MAIN
 
 
 
-.LOOP_END    
+.LOOP_END:    
     pop dx
     pop bx
     pop cx
