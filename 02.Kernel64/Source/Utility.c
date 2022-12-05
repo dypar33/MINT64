@@ -2,6 +2,8 @@
 #include "AssemblyUtility.h"
 #include <stdarg.h>
 
+volatile QWORD g_qwTickCount = 0;
+
 // memset 함수와 동일한 기능
 void kMemSet(void* pvDestinationm, BYTE bData, int iSize)
 {
@@ -322,4 +324,9 @@ int kVSPrintf(char* pcBuffer, const char* pcFormatString, va_list ap)
     pcBuffer[iBufferIndex] = '\0';
 
     return iBufferIndex;
+}
+
+QWORD kGetTickCount(void)
+{
+    return g_qwTickCount;
 }

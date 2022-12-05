@@ -2,6 +2,7 @@
 #include "AssemblyUtility.h"
 #include "Keyboard.h"
 #include "Queue.h"
+#include "Synchronization.h"
 
 BOOL kIsOutputBufferFull(void)
 {
@@ -367,27 +368,24 @@ BOOL kConvertScanCodeToASCIICode(BYTE bScanCode, BYTE* pbASCIICode, BOOL* pbFlag
 {
     BOOL bUseCombinedKey;
 
-	if( gs_stKeyboardManager.iSkipCountForPause > 0 ) {
-
+	if( gs_stKeyboardManager.iSkipCountForPause > 0 ) 
+    {
 		gs_stKeyboardManager.iSkipCountForPause--;
 		return FALSE;
-
 	}
 
-	if( bScanCode == 0xE1 ){
-
+	if( bScanCode == 0xE1 )
+    {
 		*pbASCIICode = KEY_PAUSE;
 		*pbFlags = KEY_FLAGS_DOWN;
 		gs_stKeyboardManager.iSkipCountForPause = KEY_SKIPCOUNTFORPAUSE;
 
 		return TRUE;
-
 	}
-	else if( bScanCode == 0xE0 ) {
-	
+	else if( bScanCode == 0xE0 ) 
+    {
     	gs_stKeyboardManager.bExtendedCodeIn = TRUE;
 		return FALSE;
-	
     }
 
 	bUseCombinedKey = kIsUseCombinedCode( bScanCode );
@@ -398,11 +396,10 @@ BOOL kConvertScanCodeToASCIICode(BYTE bScanCode, BYTE* pbASCIICode, BOOL* pbFlag
         *pbASCIICode = gs_vstKeyMappingTable[ bScanCode & 0x7f ].bNormalCode; 
     
 
-	if( gs_stKeyboardManager.bExtendedCodeIn == TRUE ) {
-	
+	if( gs_stKeyboardManager.bExtendedCodeIn == TRUE ) 
+    {
     	*pbFlags = KEY_FLAGS_EXTENDEDKEY;
 		gs_stKeyboardManager.bExtendedCodeIn = FALSE;
-	
     }
 	else
         *pbFlags = 0; 
@@ -431,11 +428,11 @@ BOOL kConvertScanCodeAndPutQueue(BYTE bScanCode)
 
     if(kConvertScanCodeToASCIICode(bScanCode, &(stData.bASCIICode), &(stData.bFlags)) == TRUE)
     {
-        bPreviousInterrupt = kSetInterruptFlag(FALSE);
+        bPreviousInterrupt = kLockForSystemData();
 
         bResult = kPutQueue(&gs_stKeyQueue, &stData);
 
-        kSetInterruptFlag(bPreviousInterrupt);
+        kUnlockForSystemData(bPreviousInterrupt);
     }
 
     return bResult;
@@ -449,10 +446,10 @@ BOOL kGetKeyFromKeyQueue(KEYDATA* pstData)
     if(kIsQueueEmpty(&gs_stKeyQueue) == TRUE)
         return FALSE;
 
-    bPreviousInterrupt = kSetInterruptFlag(FALSE);
+    bPreviousInterrupt = kLockForSystemData();
 
     bResult = kGetQueue(&gs_stKeyQueue, pstData);
 
-    kSetInterruptFlag(bPreviousInterrupt);
+    kUnlockForSystemData(bPreviousInterrupt);
     return bResult;
 }

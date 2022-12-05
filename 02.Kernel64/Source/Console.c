@@ -72,6 +72,8 @@ int kConsolePrintString(const char* pcBuffer)
             iPrintOffset++;
         }
 
+        
+
         if(iPrintOffset >= (CONSOLE_HEIGHT * CONSOLE_WIDTH))
         {
             kMemCpy(CONSOLE_VIDEOMEMORYADDRESS, CONSOLE_VIDEOMEMORYADDRESS + CONSOLE_WIDTH * sizeof(CHARACTER), (CONSOLE_HEIGHT - 1) * CONSOLE_WIDTH * sizeof(CHARACTER));

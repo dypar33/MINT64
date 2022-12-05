@@ -37,11 +37,22 @@ void kInitializeParameter(PARAMETERLIST* pstList, const char* pcParameter);
 int kGetNextParameter(PARAMETERLIST* pstList, char* pcParameter);
 
 // command handler
-void kHelp(const char* pcParameterBuffer);
-void kCls(const char* pcParameterBuffer);
-void kShowTotalRAMSize(const char* pcParameterBuffer);
-void kStringToDecimalHexTest(const char* pcParameterBuffer);
-void kShutdown(const char* pcParameterBugger);
+static void kHelp(const char* pcParameterBuffer);
+static void kCls(const char* pcParameterBuffer);
+static void kShowTotalRAMSize(const char* pcParameterBuffer);
+static void kStringToDecimalHexTest(const char* pcParameterBuffer);
+static void kShutdown(const char* pcParameterBuffer);
+static void kSetTimer(const char* pcParameterBuffer);
+static void kSleepUsingPIT(const char* pcParameterBuffer);
+static void kReadTimeStampCounter(const char* pcParameterBuffer);
+static void kMeasureCPUSpeed(const char* pcParameterBuffer);
+static void kShowDateAndTime(const char* pcParameterBuffer);
+static void kCreateTestTask(const char* pcParameterBuffer);
+static void kChangeTaskPriority(const char* pcParameterBuffer);
+static void kShowTaskList(const char* pcParameterBuffer);
+static void kKillTask(const char* pcParameterBuffer);
+static void kCPULoad(const char* pcParameterBuffer);
 
+static void kTestMutex(const char* pcParameterBuffer);
 
 #endif

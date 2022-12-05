@@ -4,6 +4,8 @@
 #include "PIC.h"
 #include "Console.h"
 #include "ConsoleShell.h"
+#include "Task.h"
+#include "PIT.h"
 
 void kPrintString(int ix, int iy, const char* pc_string);
 
@@ -39,6 +41,12 @@ void Main(void)
     kSetCursor(45, iCursorY++);
     kPrintf("Pass], Size = %d MB\n", kGetTotalRAMSize());
 
+    kPrintf("TCB Pool And Scheduler Initialize...........[Pass]\n" );
+    iCursorY++;
+    kInitializeScheduler();
+    kInitializePIT(MSTOCOUNT(1), 1);
+    
+
 
     kPrintf("Keyboard Activate And Queue Initialize......[    ]");
 
@@ -60,8 +68,9 @@ void Main(void)
     kMaskPICInterrupt(0);
     kEnableInterrupt();
     kSetCursor(45, iCursorY++);
-    kPrintf("Pass\n");
+    kPrintf("Pass\n"); 
 
+    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_IDLE, (QWORD) kIdleTask);
     kStartConsoleShell();
 }
 
@@ -79,8 +88,3 @@ void kPrintString(int ix, int iy, const char* pc_string)
     }
     
 }
-
-// 그래픽 cpu / 나머지 7부품 해서 6장의 견적서 만들기 (컴퓨존 같은 사이트 이용 or 전화로 요청)
-// 재고가 없어도 견적을 할 수 있다면 넣는 것도 방법
-// 12세대는 x
-// 568, 56으로 전화
