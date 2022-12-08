@@ -11,6 +11,8 @@
 #define FALSE 0
 #define NULL 0
 
+#define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+
 #pragma pack(push, 1) // 1byte로 정렬 (추가 메모리 할당 방지)
 
 typedef struct k_charctor_struct
