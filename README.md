@@ -1,7 +1,8 @@
-# mint64
+# MINT64
 Studying 64bit os development
 
-## progress
+
+## Progress
 - 2022-11-05 / Start!
 - 2022-11-07 / Chapter #1 ~ #4
 - 2022-11-08 / Chapter #5, #6 
