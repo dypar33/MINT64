@@ -6,6 +6,7 @@
 #include "ConsoleShell.h"
 #include "Task.h"
 #include "PIT.h"
+#include "DynamicMemory.h"
 
 void kPrintString(int ix, int iy, const char* pc_string);
 
@@ -44,6 +45,11 @@ void Main(void)
     kPrintf("TCB Pool And Scheduler Initialize...........[Pass]\n" );
     iCursorY++;
     kInitializeScheduler();
+
+    kPrintf("Dynamic Memory Initialize...................[Pass]\n" );
+    iCursorY++;
+    kInitializeDynamicMemory();
+
     kInitializePIT(MSTOCOUNT(1), 1);
     
 
