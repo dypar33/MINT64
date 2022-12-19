@@ -18,3 +18,7 @@ Studying 64bit os development
 - 2022-11-28 / Chapter #19
 - 2022-12-05 / Chapter #20
 - 2022-12-07 / Chapter #21
+- 2022-12-12 / Chapter #22
+- 2022-12-13 / Chapter #23
+- 2022-12-14 / Chapter #24
+- 2022-12-19 / Chapter #25
