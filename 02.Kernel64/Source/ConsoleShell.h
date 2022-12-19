@@ -65,4 +65,16 @@ static void kTestSequentialAllocation(const char* pcParameterBuffer);
 static void kTestRandomAllocation(const char* pcParameterBuffer);
 static void kRandomAllocationTask(void);
 
+static void kShowHDDInformation(const char* pcParameterBuffer);
+static void kReadSector(const char* pcParameterBuffer);
+static void kWriteSector(const char* pcParameterBuffer);
+
+static void kMountHDD(const char* pcParameterBuffer);
+static void kFormatHDD(const char* pcParameterBuffer);
+static void kShowFileSystemInformation(const char* pcParameterBuffer);
+
+static void kCreateFileInRootDirectory(const char* pcParameterBuffer);
+static void kDeleteFileInRootDirectory(const char* pcParameterBuffer);
+static void kShowRootDirectory(const char* pcParameterBuffer);
+
 #endif

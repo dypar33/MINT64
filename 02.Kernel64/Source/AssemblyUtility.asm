@@ -2,7 +2,7 @@
 
 SECTION .text
 
-global kInPortByte, kOutPortByte, kLoadTR, kLoadIDTR, kLoadGDTR
+global kInPortByte, kOutPortByte, kInPortWord, kOutPortWord, kLoadTR, kLoadIDTR, kLoadGDTR
 global kEnableInterrupt, kDisableInterrupt, kReadRFLAGS
 global kReadTSC
 global kSwitchContext, kHlt, kTestAndSet
@@ -207,4 +207,26 @@ kSetTS:
 
 kClearTS:
     clts
+    ret
+
+kInPortWord:
+    push rdx
+
+    mov rdx, rdi
+    mov rax, 0
+    in ax, dx
+
+    pop rdx
+    ret
+
+kOutPortWord:
+    push rdx
+    push rax
+
+    mov rdx, rdi
+    mov rax, rsi
+    out dx, ax
+
+    pop rax
+    pop rdx
     ret

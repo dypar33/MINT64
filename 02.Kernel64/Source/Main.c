@@ -7,6 +7,8 @@
 #include "Task.h"
 #include "PIT.h"
 #include "DynamicMemory.h"
+#include "HardDisk.h"
+#include "FileSystem.h"
 
 void kPrintString(int ix, int iy, const char* pc_string);
 
@@ -51,8 +53,6 @@ void Main(void)
     kInitializeDynamicMemory();
 
     kInitializePIT(MSTOCOUNT(1), 1);
-    
-
 
     kPrintf("Keyboard Activate And Queue Initialize......[    ]");
 
@@ -76,8 +76,31 @@ void Main(void)
     kSetCursor(45, iCursorY++);
     kPrintf("Pass\n"); 
 
-    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 
-    0, 0, (QWORD) kIdleTask);
+    kPrintf("HDD Initialize..............................[    ]");
+    if(kInitializeHDD() == TRUE)
+    {
+        kSetCursor(45, iCursorY++);
+        kPrintf("Pass\n");
+    }
+    else
+    {
+        kSetCursor(45, iCursorY++);
+        kPrintf("Fail\n");
+    }
+
+    kPrintf("File System Initialize......................[    ]");
+    if(kInitializeFileSystem() == TRUE)
+    {
+        kSetCursor(45, iCursorY++);
+        kPrintf("Pass\n");
+    }
+    else
+    {
+        kSetCursor(45, iCursorY++);
+        kPrintf("Fail\n");
+    }
+
+    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, (QWORD) kIdleTask);
     kStartConsoleShell();
 }
 
