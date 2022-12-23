@@ -44,6 +44,9 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {"createfile", "create file\n                 usage: createfile [file name]\n", kCreateFileInRootDirectory},
     {"deletefile", "delete file\n                 usage: deletefile [file name]\n", kDeleteFileInRootDirectory},
     {"ls", "show directory\n", kShowRootDirectory},
+    {"writefile", "write data to file\n                 usage: writefile [file name]\n", kWriteDataToFile},
+    {"readfile", "read data from  file\n                 usage: readfile [file name]\n", kReadDataFromFile},
+    {"testfileio", "test file i/o function\n", kTestFileIO},
 };
 
 // main loop
@@ -1170,49 +1173,31 @@ static void kCreateFileInRootDirectory(const char* pcParameterBuffer)
     DWORD dwCluster;
     DIRECTORYENTRY stEntry;
     int i;
+    FILE* pstFile;
 
     kInitializeParameter(&stList, pcParameterBuffer);
     iLength = kGetNextParameter(&stList, vcFileName);
 
     vcFileName[iLength] = '\0';
 
-    if((iLength > (sizeof(stEntry.vcFileName) - 1)) || (iLength == 0))
+    if((iLength > FILESYSTEM_MAXFILENAMELENGTH - 1) || (iLength == 0))
     {
         kPrintf("Too Long or Too Short File Name\n");
 
         return;
     }
 
-    dwCluster = kFindFreeCluster();
-
-    if((dwCluster == FILESYSTEM_LASTCLUSTER) || (kSetClusterLinkData(dwCluster, FILESYSTEM_LASTCLUSTER) == FALSE))
+    pstFile = fopen(vcFileName, "w");
+    if(pstFile == NULL)
     {
-        kPrintf("Cluster Allocation Fail\n");
+        kPrintf("File Create Fail..\n");
 
         return;
     }
 
-    i = kFindFreeDirectoryEntry();
+    fclose(pstFile);
 
-    if(i == -1)
-    {
-        kSetClusterLinkData(dwCluster, FILESYSTEM_FREECLUSTER);
-        kPrintf("Directory Entry is Full\n");
-
-        return;
-    }
-
-    kMemCpy(stEntry.vcFileName, vcFileName, iLength + 1);
-    stEntry.dwStartClusterIndex = dwCluster;
-    stEntry.dwFileSize = 0;
-
-    if(kSetDirectoryEntryData(i, &stEntry) == FALSE)
-    {
-        kSetClusterLinkData(dwCluster, FILESYSTEM_FREECLUSTER);
-        kPrintf("Directory Entry Set Fail\n");
-    }
-
-    kPrintf("File Create Success\n");
+    kPrintf("File Create Success!\n");
 }
 
 static void kDeleteFileInRootDirectory(const char* pcParameterBuffer)
@@ -1228,87 +1213,83 @@ static void kDeleteFileInRootDirectory(const char* pcParameterBuffer)
 
     vcFileName[iLength] = '\0';
     
-    if(iLength > (sizeof(stEntry.vcFileName) - 1) || (iLength == 0))
+    if(iLength > FILESYSTEM_MAXFILENAMELENGTH - 1 || (iLength == 0))
     {
         kPrintf("Too Long or Too Short File Name\n");
 
         return;
     }
 
-    iOffset = kFindDirectoryEntry(vcFileName, &stEntry);
-    if(iOffset == -1)
+    if(remove(vcFileName) != 0)
     {
-        kPrintf("File Not Found\n");
+        kPrintf("File Not Found or File Opend\n");
+        
         return;
     }
 
-    if(kSetClusterLinkData(stEntry.dwStartClusterIndex, FILESYSTEM_FREECLUSTER) == FALSE)
-    {
-        kPrintf("Cluster Free Fail\n");
-        return;
-    }
-
-    kMemSet(&stEntry, 0, sizeof(stEntry));
-    if(kSetDirectoryEntryData(iOffset, &stEntry) == FALSE)
-    {
-        kPrintf("Root Directory Update Fail");
-
-        return ;
-    }
-
-    kPrintf("File Delete Success\n");
+    kPrintf("File Delete Success!\n");
 }
 
 static void kShowRootDirectory(const char* pcParameterBuffer)
 {
-    BYTE* pbClusterBuffer;
+    DIR* pstDirectory;
     int i, iCount, iTotalCount;
-    DIRECTORYENTRY* pstEntry;
+    struct dirent* pstEntry;
     char vcBuffer[400];
     char vcTempValue[50];
     DWORD dwTotalByte;
+    DWORD dwUsedClusterCount;
+    FILESYSTEMMANAGER stManager;
 
-    pbClusterBuffer = kAllocateMemory(FILESYSTEM_SECTORSPERCLUSTER * 512);
+    kGetFileSystemInformation(&stManager);
 
-    if(kReadCluster(0, pbClusterBuffer) == FALSE)
+    pstDirectory = opendir("/");
+    if(pstDirectory == NULL)
     {
         kPrintf("Root Directory Read Fail\n");
 
-        return ;
+        return;
     }
 
-    pstEntry = (DIRECTORYENTRY*) pbClusterBuffer;
     iTotalCount = 0;
     dwTotalByte = 0;
+    dwUsedClusterCount = 0;
 
-    for(i = 0; i < FILESYSTEM_MAXDIRECTORYENTRYCOUNT; i++)
+    while(1)
     {
-        if(pstEntry[i].dwStartClusterIndex == 0)
-        {
-            continue;
-        }
+        pstEntry = readdir(pstDirectory);
 
+        if(pstEntry == NULL)
+            break;
+        
         iTotalCount++;
-        dwTotalByte += pstEntry[i].dwFileSize;
+        dwTotalByte += pstEntry->dwFileSize;
+
+        if(pstEntry->dwFileSize == 0)
+            dwUsedClusterCount++;
+        else
+            dwUsedClusterCount += (pstEntry->dwFileSize + (FILESYSTEM_CLUSTERSIZE - 1)) / FILESYSTEM_CLUSTERSIZE;
     }
 
-    pstEntry = (DIRECTORYENTRY*) pbClusterBuffer;
+    rewinddir(pstDirectory);
     iCount = 0;
 
-    for(i = 0; i < FILESYSTEM_MAXDIRECTORYENTRYCOUNT; i++)
+    while(TRUE)
     {
-        if(pstEntry[i].dwStartClusterIndex == 0)
-            continue;
+        pstEntry = readdir(pstDirectory);
+
+        if(pstEntry == NULL)
+            break;
         
         kMemSet(vcBuffer, ' ', sizeof(vcBuffer) - 1);
         vcBuffer[sizeof(vcBuffer) - 1] = '\0';
-
-        kMemCpy(vcBuffer, pstEntry[i].vcFileName, kStrLen(pstEntry[i].vcFileName));
-
-        kSPrintf(vcTempValue, "%d Byte", pstEntry[i].dwFileSize);
+        
+        kMemCpy(vcBuffer, pstEntry->d_name, kStrLen(pstEntry->d_name));
+        
+        kSPrintf(vcTempValue, "%d Byte", pstEntry->dwFileSize);
         kMemCpy(vcBuffer + 30, vcTempValue, kStrLen(vcTempValue));
 
-        kSPrintf(vcTempValue, "0x%X Cluster", pstEntry[i].dwStartClusterIndex);
+        kSPrintf(vcTempValue, "0x%X Cluster", pstEntry->dwStartClusterIndex);
         kMemCpy(vcBuffer + 55, vcTempValue, kStrLen(vcTempValue) + 1);
         kPrintf("    %s\n", vcBuffer);
 
@@ -1318,7 +1299,7 @@ static void kShowRootDirectory(const char* pcParameterBuffer)
 
             if(kGetCh == 'q')
             {
-                kPrintf('\n');
+                kPrintf("\n");
                 break;
             }
         }
@@ -1326,7 +1307,347 @@ static void kShowRootDirectory(const char* pcParameterBuffer)
         iCount++;
     }
 
-    kPrintf("\t Total File Count: %d\t Total File Size: %d Byte\n", iTotalCount, dwTotalByte);
+    kPrintf("\t Total File Count: %d\nTotal File Size: %d KByte (%d Cluster)\n", iTotalCount, dwTotalByte / 1024, dwUsedClusterCount);
+    kPrintf("\t\tFree Space: %d KByte (%d Cluster)\n", dwTotalByte / 1024, dwUsedClusterCount);
 
-    kFreeMemory(pbClusterBuffer);
+    closedir(pstDirectory);
+}
+
+static void kWriteDataToFile(const char* pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcFileName[50];
+    int iLength;
+    int iEnterCount;
+    FILE* fp;
+    BYTE bKey;
+
+    kInitializeParameter(&stList, pcParameterBuffer);
+    iLength = kGetNextParameter(&stList, vcFileName);
+
+    vcFileName[iLength] = '\0';
+
+    if((iLength > FILESYSTEM_MAXFILENAMELENGTH - 1) || (iLength == 0))
+    {
+        kPrintf("Too Long or Too Short File Name\n");
+
+        return;
+    }
+
+    fp = fopen(vcFileName, "w");
+
+    if(fp == NULL)
+    {
+        kPrintf("%s File Open Fail..\n", vcFileName);
+    }
+
+    iEnterCount = 0;
+
+    while(TRUE)
+    {
+        bKey = kGetCh();
+
+        if(bKey == KEY_ENTER)
+        {
+            iEnterCount++;
+
+            if(iEnterCount >= 3)
+                break;
+        }
+        else
+        {
+            iEnterCount = 0;
+        }
+
+        kPrintf("%c", bKey);
+        if(fwrite(&bKey, 1, 1, fp) != 1)
+        {
+            kPrintf("File Write Fail\n");
+            break;
+        }
+    }
+
+    kPrintf("File Create Success\n");
+    fclose(fp);
+}
+
+static void kReadDataFromFile(const char* pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcFileName[50];
+    int iLength;
+    int iEnterCount;
+    FILE* fp;
+    BYTE bKey;
+
+    kInitializeParameter(&stList, pcParameterBuffer);
+    iLength = kGetNextParameter(&stList, vcFileName);
+
+    vcFileName[iLength] = '\0';
+
+    if((iLength > FILESYSTEM_MAXFILENAMELENGTH - 1) || (iLength == 0))
+    {
+        kPrintf("Too Long or Too Short File Name\n");
+
+        return;
+    }
+
+    fp = fopen(vcFileName, "r");
+
+    if(fp == NULL)
+    {
+        kPrintf("%s File Open Fail..\n", vcFileName);
+    }
+
+    iEnterCount = 0;
+
+    while(TRUE)
+    {
+        if(fread(&bKey, 1, 1, fp) != 1)
+            break;
+        
+        kPrintf("%c", bKey);
+
+        if(bKey == KEY_ENTER)
+        {
+            iEnterCount++;
+
+            if((iEnterCount != 0) && ((iEnterCount % 20) == 0))
+            {
+                kPrintf("Press any key to continue... ('q' is exit) : ");
+
+                if(kGetCh() == 'q')
+                {
+                    kPrintf("\n");
+                    break;
+                }
+
+                kPrintf("\n");
+                iEnterCount = 0;
+            }
+        }
+    }
+
+    fclose(fp);
+}
+
+static void kTestFileIO(const char* pcParameterBuffer)
+{
+    FILE* pstFile;
+    BYTE* pbBuffer;
+
+    int i, j;
+
+    DWORD dwRandomOffset;
+    DWORD dwByteCount;
+
+    BYTE vbTempBuffer[1024];
+
+    DWORD dwMaxFileSize;
+
+    kPrintf("================== File I/O Function Test ==================\n");
+
+    dwMaxFileSize = 4 * 1024 * 1024;
+
+    pbBuffer = kAllocateMemory(dwMaxFileSize);
+    if(pbBuffer == NULL)
+    {
+        kPrintf("Memory Allocation Fail\n");
+
+        return;
+    }
+
+    remove("testfileio.bin");
+
+    kPrintf("1. file open fail test...");
+    pstFile = fopen("testfileio.bin", "r");
+
+    if(pstFile == NULL)
+        kPrintf("[Pass]\n");
+    else
+    {
+        kPrintf("[Fail]\n");
+        fclose(pstFile);
+    }
+
+    kPrintf("2. file create test...");
+    pstFile = fopen("testfileio.bin", "w");
+
+    if(pstFile != NULL)
+    {
+        kPrintf("[Pass]\n");
+        kPrintf("   File Handle [0x%Q]\n", pstFile);
+    }
+    else
+    {
+        kPrintf("[Fail]\n");
+    }
+
+    kPrintf("3. sequential write test(cluster size)...");
+
+    for (i = 0; i < 100; i++)
+    {
+        kMemSet(pbBuffer, i, FILESYSTEM_CLUSTERSIZE);
+        
+        if(fwrite(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) != FILESYSTEM_CLUSTERSIZE)
+        {
+            kPrintf("[Fail]\n");
+            kPrintf("   %d Cluster Error\n", i);
+            break;
+        }
+    }
+
+    if(i >= 100)
+        kPrintf("[Pass]\n");
+
+    kPrintf("4. sequential read and verify test(cluster size)...");
+    fseek(pstFile, -100 * FILESYSTEM_CLUSTERSIZE, SEEK_END);
+
+    for (i = 0; i < 100; i++)
+    {
+        if(fread(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) != FILESYSTEM_CLUSTERSIZE)
+        {
+            kPrintf("[Fail]\n");
+
+            return;
+        }
+
+        for(j = 0; j <FILESYSTEM_CLUSTERSIZE; j++)
+        {
+            if(pbBuffer[j] != (BYTE)i)
+            {
+                kPrintf("[Fail]\n");
+                kPrintf("   %d Cluster Error. [%X] != [%X]\n", i, pbBuffer[j], (BYTE) i);
+
+                break;
+            }
+        }
+    }
+
+    if(i >= 100)
+        kPrintf("[Pass]\n");
+
+    kPrintf("5. random write test...\n");
+
+    kMemSet(pbBuffer, 0, dwMaxFileSize);
+
+    fseek(pstFile, -100 *  FILESYSTEM_CLUSTERSIZE, SEEK_CUR);
+    fread(pbBuffer, 1, dwMaxFileSize, pstFile);
+
+    for(i = 0; i < 100; i++)
+    {
+        dwByteCount = (kRandom() % (sizeof(vbTempBuffer) - 1)) + 1;
+        dwRandomOffset = kRandom() % (dwMaxFileSize - dwByteCount);
+
+        kPrintf("   [%d] Offset [%d] Byte [%d]...", i, dwRandomOffset, dwByteCount);
+
+        fseek(pstFile, dwRandomOffset, SEEK_SET);
+        kMemSet(vbTempBuffer, i, dwByteCount);
+
+        if(fwrite(vbTempBuffer, 1, dwByteCount, pstFile) != dwByteCount)
+        {
+            kPrintf("[Fail]\n");
+            break;
+        }
+        else
+        {
+            kPrintf("[Pass]\n");
+        }
+
+        kMemSet(pbBuffer + dwRandomOffset, i, dwByteCount);
+    }
+    
+    fseek(pstFile, dwMaxFileSize - 1, SEEK_SET);
+    fwrite(&i, 1, 1, pstFile);
+    pbBuffer[dwMaxFileSize - 1] = (BYTE) i;
+
+    kPrintf("6. random and verify test...\n");
+
+    for(i = 0; i < 100; i++)
+    {
+        dwByteCount = (kRandom() % (sizeof(vbTempBuffer) - 1)) + 1;
+        dwRandomOffset = kRandom() % ((dwMaxFileSize) - dwByteCount);
+
+        kPrintf("   [%d] Offset [%d] Byte [%d]...", i, dwRandomOffset, dwByteCount);
+
+        fseek(pstFile, dwRandomOffset, SEEK_SET);
+
+        if(fread(vbTempBuffer, 1, dwByteCount, pstFile) != dwByteCount)
+        {
+            kPrintf("[Fail]\n");
+            kPrintf("   Read Fail\n", dwRandomOffset);
+            break;
+        }
+
+        if(kMemCmp(pbBuffer + dwRandomOffset, vbTempBuffer, dwByteCount) != 0)
+        {
+            kPrintf("[Fail]\n");
+            kPrintf("   CompareFail\n", dwRandomOffset);
+
+            break;
+        }
+
+        kPrintf("[Pass]\n");
+    }
+
+    kPrintf("7. sequential write, read and verify test(1024byte)...\n");
+    fseek(pstFile, -dwMaxFileSize, SEEK_CUR);
+
+    for(i = 0; i < (2 * 1024 * 1024 / 1024); i++)
+    {
+        kPrintf("   [%d] Offset [%d] Byte [%d] Write...", i, i * 1024, 1024);
+
+        if(fwrite(pbBuffer + (i * 1024), 1, 1024, pstFile) != 1024)
+        {
+            kPrintf("[Fail]\n");
+            return;
+        }
+        else
+            kPrintf("[Pass]\n");
+    }
+
+    fseek(pstFile, -dwMaxFileSize, SEEK_SET);
+
+    for(i = 0; i < (dwMaxFileSize / 1024); i++)
+    {
+        kPrintf("   [%d] Offset [%d] Byte [%d] Read And Verify...", i, i * 1024, 1024);
+
+        if(fread(vbTempBuffer, 1, 1024, pstFile) != 1024)
+        {
+            kPrintf("[Fail]\n");
+            return;
+        }
+
+        if(kMemCmp(pbBuffer + (i * 1024), vbTempBuffer, 1024) != 0)
+        {
+            kPrintf("[Fail]\n");
+            break;
+        }
+        else
+        {
+            kPrintf("[Pass]\n");
+        }
+    }
+
+    kPrintf("8. file delete fail test...");
+
+    if(remove("testfileio.bin") != 0)
+        kPrintf("[Pass]\n");
+    else
+        kPrintf("[Fail]\n");
+    
+    kPrintf("9. file close test...");
+
+    if(fclose(pstFile) == 0)
+        kPrintf("[Pass]\n");
+    else
+        kPrintf("[Fail]\n");
+
+    kPrintf("10. file delete test...");
+    if(remove("testfileio.bin") == 0)
+        kPrintf("[Pass]\n");
+    else
+        kPrintf("[Fail]\n"); 
+    
+    kFreeMemory(pbBuffer);
 }
