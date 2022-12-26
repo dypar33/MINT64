@@ -5,31 +5,64 @@
 volatile QWORD g_qwTickCount = 0;
 
 // memset 함수와 동일한 기능
-void kMemSet(void* pvDestinationm, BYTE bData, int iSize)
+void kMemSet(void* pvDestination, BYTE bData, int iSize)
 {
-    for (int i = 0; i < iSize; i++)
-        ((char *) pvDestinationm)[i] = bData;
+    int i, iRemainByteStartOffset;
+    QWORD qwData;
+
+    qwData = 0;
+
+    for (i = 0; i < 8; i++)
+        qwData = (qwData << 8) | bData;
+    
+    for(i = 0; i < (iSize / 8); i++)
+        ((QWORD*) pvDestination)[i] = qwData;
+    
+    iRemainByteStartOffset = i * 8;
+
+    for(i = 0; i < (iSize % 8); i++)
+        ((char*) pvDestination)[iRemainByteStartOffset++] = bData;
 }
 
-int kMemCpy(void* pvDestination, const void* pvSource, int iSize)
+void kMemCpy(void* pvDestination, const void* pvSource, int iSize)
 {
-    for(int i = 0; i < iSize; i++)
-        ((char*) pvDestination)[i] = ((char*) pvSource)[i];
+    int i, iRemainByteStartOffset;
+    
+    for(i = 0; i < (iSize / 8); i++)
+        ((QWORD*) pvDestination)[i] = ((QWORD*) pvSource)[i];
+    
+    iRemainByteStartOffset = i * 8;
 
-    return iSize;
+    for(i = 0; i < (iSize % 8); i++)
+    {
+        ((char*) pvDestination)[iRemainByteStartOffset] = ((char*) pvSource)[iRemainByteStartOffset];
+
+        iRemainByteStartOffset;
+    }
 }
 
 int kMemCmp(const void* pvDestination, const void* pvSource, int iSize)
 {
-    char cTemp;
+    int i, j;
+    int iRemainByteStartOffset;
 
-    for (int i = 0; i < iSize; i++)
+    QWORD qwValue;
+
+    char cValue;
+
+    for(i = 0; i < (iSize / 8); i++)
     {
-        cTemp = ((char*) pvDestination)[i] - ((char*) pvSource)[i];
-        if(cTemp != 0)
-            return (int)cTemp;
+        qwValue = ((QWORD*) pvDestination)[i] - ((QWORD*) pvSource)[i];
+
+        if(qwValue != 0)
+        {
+            if(((qwValue >> (i * 8)) & 0xFF) != 0)
+                return (qwValue >> (i*8) & 0xFF);
+        }
     }
-    
+
+    iRemainByteStartOffset++;
+
     return 0;
 }
 
