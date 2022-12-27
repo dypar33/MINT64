@@ -9,6 +9,7 @@
 #include "DynamicMemory.h"
 #include "HardDisk.h"
 #include "FileSystem.h"
+#include "SerialPort.h"
 
 void kPrintString(int ix, int iy, const char* pc_string);
 
@@ -87,6 +88,11 @@ void Main(void)
         kSetCursor(45, iCursorY++);
         kPrintf("Fail\n");
     }
+
+    kPrintf("Serial Port Initialize......................[Pass]\n");
+    iCursorY++;
+
+    kInitializeSerialPort();
 
     kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, (QWORD) kIdleTask);
     kStartConsoleShell();

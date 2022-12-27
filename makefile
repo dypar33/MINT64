@@ -17,7 +17,7 @@ Kernel64:
 
 Disk.img: 00.BootLoader/BootLoader.bin 01.Kernel32/Kernel32.bin 02.Kernel64/Kernel64.bin
 	@echo Disk Image Build Start
-	python3 00.ImageMaker/ImageMaker.py 
+	python3 04.Utility/00.ImageMaker/ImageMaker.py 
 	@echo Disk Image Build End
 
 clean:

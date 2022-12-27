@@ -8,7 +8,7 @@
 #define MAX(x,y) (((x) > (y)) ? (x) : (y))
 
 void kMemSet(void* pvDestination, BYTE bData, int iSize);
-void kMemCpy(void* pvDestination, const void* pvSource, int iSize);
+int kMemCpy(void* pvDestination, const void* pvSource, int iSize);
 int kMemCmp(const void* pvDestination, const void* pvSource, int iSize);
 
 BOOL kSetInterruptFlag(BOOL bEnableInterrupt);
