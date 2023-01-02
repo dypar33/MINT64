@@ -11,23 +11,24 @@
 #include "HardDisk.h"
 #include "FileSystem.h"
 #include "SerialPort.h"
+#include "MPConfiguationTable.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] = 
 {
     {"help", "show help", kHelp},
-    {"cls", "clear screen", kCls},
+    {"clear", "clear screen", kCls},
     {"totalram", "show total ram size", kShowTotalRAMSize},
     {"strtod", "str to decimal/hex", kStringToDecimalHexTest},
     {"shutdown", "shutdown and reboot os", kShutdown},
-    {"settimer", "set pit controller counter0\n                 usage: settimer [ms] [periodic]\n", kSetTimer},
-    {"sleep", "sleeping\n                 usage: sleep [ms]\n", kSleepUsingPIT},
+    {"settimer", "set pit controller counter0\n                 usage: settimer [ms] [periodic]", kSetTimer},
+    {"sleep", "sleeping\n                 usage: sleep [ms]", kSleepUsingPIT},
     {"rdtsc", "read time stamp counter", kReadTimeStampCounter},
     {"cpuspeed", "measure cpu speed", kMeasureCPUSpeed},
     {"date", "show date and time", kShowDateAndTime},
     {"createtask", "create task\n                 usage: createtask [type] [count]\n", kCreateTestTask},
-    {"changepriority", "change task priority\n                 usage: changepriority [ID] [Priority]\n", kChangeTaskPriority},
+    {"changepriority", "change task priority\n                 usage: changepriority [ID] [Priority]", kChangeTaskPriority},
     {"tasklist", "show task list\n", kShowTaskList},
-    {"killtask", "end task\n                 usage: killtask [id] or 0xffffffff(all)\n", kKillTask},
+    {"killtask", "end task\n                 usage: killtask [id] or 0xffffffff(all)", kKillTask},
     {"cpuload", "show processor load\n", kCPULoad},
     {"testmutex", "test mutex function", kTestMutex},
     {"testthread", "test thread and process function", kTestThread},
@@ -42,15 +43,16 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {"mounthdd", "mount hdd", kMountHDD},
     {"formathdd", "format hdd", kFormatHDD},
     {"filesysteminfo", "show file system information", kShowFileSystemInformation},
-    {"createfile", "create file\n                 usage: createfile [file name]\n", kCreateFileInRootDirectory},
-    {"deletefile", "delete file\n                 usage: deletefile [file name]\n", kDeleteFileInRootDirectory},
+    {"createfile", "create file\n                 usage: createfile [file name]", kCreateFileInRootDirectory},
+    {"deletefile", "delete file\n                 usage: deletefile [file name]", kDeleteFileInRootDirectory},
     {"ls", "show directory\n", kShowRootDirectory},
-    {"writefile", "write data to file\n                 usage: writefile [file name]\n", kWriteDataToFile},
-    {"readfile", "read data from  file\n                 usage: readfile [file name]\n", kReadDataFromFile},
+    {"writefile", "write data to file\n                 usage: writefile [file name]", kWriteDataToFile},
+    {"readfile", "read data from  file\n                 usage: readfile [file name]", kReadDataFromFile},
     {"testfileio", "test file i/o function", kTestFileIO},
     {"testperformance", "test file r/w performance", kTestPerformance},
     {"flush", "flush file system cache", kFlushCache},
-    {"download", "download data from serial\n                 usage: download [file name]\n", kDownloadFile},
+    {"download", "download data from serial\n                 usage: download [file name]", kDownloadFile},
+    {"showmpinfo", "show mp configuration table information", kShowMPConfigurationTable},
 };
 
 // main loop
@@ -1873,9 +1875,10 @@ static void kDownloadFile(const char* pcParameterBuffer)
 
     kPrintf("[%d] Byte\n", dwDataLength);
 
-    kSendSerialData("A", 1);
+    kSendSerialData("A", 1); // ack
 
     fp = fopen(vcFileName, "w");
+    
     if(fp == NULL)
     {
         kPrintf("%s file open fail\n", vcFileName);
@@ -1929,4 +1932,9 @@ static void kDownloadFile(const char* pcParameterBuffer)
 
     kFlushFileSystemCache();
 
+}
+
+static void kShowMPConfigurationTable(const char* pcParameterBuffer)
+{
+    kPrintMPConfigurationTable();
 }
