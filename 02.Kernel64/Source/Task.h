@@ -159,4 +159,3 @@ QWORD kGetLastFPUUsedTaskID(void);
 void kSetLastFPUUsedTaskID(QWORD qwTaskID);
 
 #endif
-

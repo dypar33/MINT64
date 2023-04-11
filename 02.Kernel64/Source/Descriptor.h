@@ -34,11 +34,11 @@
 // 기타 GDT 관련된 매크로
 #define GDTR_STARTADDRESS 0x142000 // GDTR 시작 주소
 #define GDT_MAXENTRY8COUNT 3       // 8byte entry 개수 (널, 데이터, 코드 커널 디스크립터)
-#define GDT_MAXENTRY16COUNT 1      // 16byte entry 개수 (TSS)
+#define GDT_MAXENTRY16COUNT (MAXPROCESSORCOUNT)      // 16byte entry 개수 (TSS)
 // GDT 테이블의 크기
 #define GDT_TABLESIZE ((sizeof(GDTENTRY8) * GDT_MAXENTRY8COUNT) + (sizeof(GDTENTRY16) * GDT_MAXENTRY16COUNT))
 // tss 세그먼트 사이즈
-#define TSS_SEGMENTSIZE (sizeof(TSSSEGMENT))
+#define TSS_SEGMENTSIZE (sizeof(TSSSEGMENT) * MAXPROCESSORCOUNT)
 
 // IDT 
 #define IDT_TYPE_INTERRUPT 0x0E

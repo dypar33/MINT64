@@ -10,6 +10,12 @@ START:
     mov ds, ax
     mov es, ax
 
+    mov ax, 0x0000
+    mov es, ax
+
+    cmp byte [es:0x7c09], 0x00
+    je .APPLICATIONPROCESSORSTARTPOINT
+
     ; activate A20 Gate
     mov ax, 0x2401
     int 0x15
@@ -23,6 +29,15 @@ START:
     or al, 0x02
     and al, 0xFE
     out 0x92, al
+
+.APPLICATIONPROCESSORSTARTPOINT:
+    cli
+    lgdt [GDTR]
+
+    mov eax, 0x4000003B
+    mov cr0, eax
+
+    jmp dword 0x18:(PROTECTED_MODE - $$ + 0x10000)
 
 .SWICH_PROTECTED_MODE:
     cli ; 인터럽트가 발생하지 않도록
@@ -50,12 +65,16 @@ PROTECTED_MODE:
     mov esp, 0xFFFE
     mov ebp, 0xFFFE
 
+    cmp byte [0x7C09], 0x00
+    je .APPLICATIONPROCESSORSTARTPOINT
+
     ; print
     push (SWICH_SUCCESS_M - $$ + 0x10000)
     push 2
     push 0
     call PRINT_M
 
+.APPLICATIONPROCESSORSTARTPOINT:
     jmp dword 0x18:0x10200 ; cs 레지스터를 커널 코드 디스크립터(0x8)로 변경
 
 PRINT_M:

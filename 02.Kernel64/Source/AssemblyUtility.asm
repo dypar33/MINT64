@@ -7,6 +7,7 @@ global kEnableInterrupt, kDisableInterrupt, kReadRFLAGS
 global kReadTSC
 global kSwitchContext, kHlt, kTestAndSet
 global kInitializeFPU, kSaveFPUContext, kLoadFPUContext, kSetTS, kClearTS
+global kEnableGlobalLocalAPIC
 
 kHlt:
     hlt
@@ -229,4 +230,19 @@ kOutPortWord:
 
     pop rax
     pop rdx
+    ret
+
+kEnableGlobalLocalAPIC:
+    push rax
+    push rcx
+    push rdx
+
+    mov rcx, 27
+    rdmsr
+
+    or eax, 0x0800
+
+    pop rdx
+    pop rcx
+    pop rax
     ret

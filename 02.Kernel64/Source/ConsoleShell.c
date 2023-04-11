@@ -12,47 +12,52 @@
 #include "FileSystem.h"
 #include "SerialPort.h"
 #include "MPConfiguationTable.h"
+#include "MultiProcessor.h"
+#include "IOAPIC.h"
 
-SHELLCOMMANDENTRY gs_vstCommandTable[] = 
-{
-    {"help", "show help", kHelp},
-    {"clear", "clear screen", kCls},
-    {"totalram", "show total ram size", kShowTotalRAMSize},
-    {"strtod", "str to decimal/hex", kStringToDecimalHexTest},
-    {"shutdown", "shutdown and reboot os", kShutdown},
-    {"settimer", "set pit controller counter0\n                 usage: settimer [ms] [periodic]", kSetTimer},
-    {"sleep", "sleeping\n                 usage: sleep [ms]", kSleepUsingPIT},
-    {"rdtsc", "read time stamp counter", kReadTimeStampCounter},
-    {"cpuspeed", "measure cpu speed", kMeasureCPUSpeed},
-    {"date", "show date and time", kShowDateAndTime},
-    {"createtask", "create task\n                 usage: createtask [type] [count]\n", kCreateTestTask},
-    {"changepriority", "change task priority\n                 usage: changepriority [ID] [Priority]", kChangeTaskPriority},
-    {"tasklist", "show task list\n", kShowTaskList},
-    {"killtask", "end task\n                 usage: killtask [id] or 0xffffffff(all)", kKillTask},
-    {"cpuload", "show processor load\n", kCPULoad},
-    {"testmutex", "test mutex function", kTestMutex},
-    {"testthread", "test thread and process function", kTestThread},
-    {"showmatrix", "show matrix screen~~!!", kShowMatrix},
-    {"testpie", "pie calculation test", kTestPIE},
-    {"dynamicmeminfo", "show dynamic memory info", kShowDynamicMemoryInformation},
-    {"testseqalloc", "test sequential allocation & free", kTestSequentialAllocation},
-    {"testranalloc", "test random allocation & free", kTestRandomAllocation},
-    {"hddinfo", "show hdd info", kShowHDDInformation},
-    {"readsector", "read hdd sector\n                 usage: readsector 0(LBA) 10(count)\n", kReadSector},
-    {"writesector", "write hdd sector\n                 usage: writesector 0(LBA) 10(count)\n", kWriteSector},
-    {"mounthdd", "mount hdd", kMountHDD},
-    {"formathdd", "format hdd", kFormatHDD},
-    {"filesysteminfo", "show file system information", kShowFileSystemInformation},
-    {"createfile", "create file\n                 usage: createfile [file name]", kCreateFileInRootDirectory},
-    {"deletefile", "delete file\n                 usage: deletefile [file name]", kDeleteFileInRootDirectory},
-    {"ls", "show directory\n", kShowRootDirectory},
-    {"writefile", "write data to file\n                 usage: writefile [file name]", kWriteDataToFile},
-    {"readfile", "read data from  file\n                 usage: readfile [file name]", kReadDataFromFile},
-    {"testfileio", "test file i/o function", kTestFileIO},
-    {"testperformance", "test file r/w performance", kTestPerformance},
-    {"flush", "flush file system cache", kFlushCache},
-    {"download", "download data from serial\n                 usage: download [file name]", kDownloadFile},
-    {"showmpinfo", "show mp configuration table information", kShowMPConfigurationTable},
+SHELLCOMMANDENTRY gs_vstCommandTable[] =
+    {
+        {"help", "show help", kHelp},
+        {"clear", "clear screen", kCls},
+        {"totalram", "show total ram size", kShowTotalRAMSize},
+        {"strtod", "str to decimal/hex", kStringToDecimalHexTest},
+        {"shutdown", "shutdown and reboot os", kShutdown},
+        {"settimer", "set pit controller counter0\n                 usage: settimer [ms] [periodic]", kSetTimer},
+        {"sleep", "sleeping\n                 usage: sleep [ms]", kSleepUsingPIT},
+        {"rdtsc", "read time stamp counter", kReadTimeStampCounter},
+        {"cpuspeed", "measure cpu speed", kMeasureCPUSpeed},
+        {"date", "show date and time", kShowDateAndTime},
+        {"createtask", "create task\n                 usage: createtask [type] [count]\n", kCreateTestTask},
+        {"changepriority", "change task priority\n                 usage: changepriority [ID] [Priority]", kChangeTaskPriority},
+        {"tasklist", "show task list\n", kShowTaskList},
+        {"killtask", "end task\n                 usage: killtask [id] or 0xffffffff(all)", kKillTask},
+        {"cpuload", "show processor load\n", kCPULoad},
+        {"testmutex", "test mutex function", kTestMutex},
+        {"testthread", "test thread and process function", kTestThread},
+        {"showmatrix", "show matrix screen~~!!", kShowMatrix},
+        {"testpie", "pie calculation test", kTestPIE},
+        {"dynamicmeminfo", "show dynamic memory info", kShowDynamicMemoryInformation},
+        {"testseqalloc", "test sequential allocation & free", kTestSequentialAllocation},
+        {"testranalloc", "test random allocation & free", kTestRandomAllocation},
+        {"hddinfo", "show hdd info", kShowHDDInformation},
+        {"readsector", "read hdd sector\n                 usage: readsector 0(LBA) 10(count)\n", kReadSector},
+        {"writesector", "write hdd sector\n                 usage: writesector 0(LBA) 10(count)\n", kWriteSector},
+        {"mounthdd", "mount hdd", kMountHDD},
+        {"formathdd", "format hdd", kFormatHDD},
+        {"filesysteminfo", "show file system information", kShowFileSystemInformation},
+        {"createfile", "create file\n                 usage: createfile [file name]", kCreateFileInRootDirectory},
+        {"deletefile", "delete file\n                 usage: deletefile [file name]", kDeleteFileInRootDirectory},
+        {"ls", "show directory\n", kShowRootDirectory},
+        {"writefile", "write data to file\n                 usage: writefile [file name]", kWriteDataToFile},
+        {"readfile", "read data from  file\n                 usage: readfile [file name]", kReadDataFromFile},
+        {"testfileio", "test file i/o function", kTestFileIO},
+        {"testperformance", "test file r/w performance", kTestPerformance},
+        {"flush", "flush file system cache", kFlushCache},
+        {"download", "download data from serial\n                 usage: download [file name]", kDownloadFile},
+        {"showmpinfo", "show mp configuration table information", kShowMPConfigurationTable},
+        {"startap", "start application processor", kStartApplicationProcessor},
+        {"startsymmetricio", "start symmetric i/o mode", kStartSymmetricIOMode},
+        {"showirqintinmap", "show irq->initin mapping table", kShowIRQINTINMappingTable},
 };
 
 // main loop
@@ -65,25 +70,25 @@ void kStartConsoleShell(void)
 
     kPrintf(CONSOLESHELL_PROMPTMESSAGE);
 
-    while(1)
+    while (1)
     {
         bKey = kGetCh();
-        
-        if(bKey == KEY_BACKSPACE)
+
+        if (bKey == KEY_BACKSPACE)
         {
-            if(iCommandBufferIndex > 0)
+            if (iCommandBufferIndex > 0)
             {
                 kGetCursor(&iCursorX, &iCursorY);
-                kPrintStringXY(iCursorX -1, iCursorY, " ");
-                kSetCursor(iCursorX -1, iCursorY);
+                kPrintStringXY(iCursorX - 1, iCursorY, " ");
+                kSetCursor(iCursorX - 1, iCursorY);
                 iCommandBufferIndex -= 1;
             }
         }
-        else if(bKey == KEY_ENTER)
+        else if (bKey == KEY_ENTER)
         {
             kPrintf("\n");
 
-            if(iCommandBufferIndex > 0)
+            if (iCommandBufferIndex > 0)
             {
                 vcCommandBuffer[iCommandBufferIndex] = '\0';
                 kExecuteCommand(vcCommandBuffer);
@@ -93,16 +98,16 @@ void kStartConsoleShell(void)
             kMemSet(vcCommandBuffer, '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT);
             iCommandBufferIndex = 0;
         }
-        else if(bKey == KEY_LSHIFT || bKey == KEY_RSHIFT || bKey == KEY_CAPSLOCK || bKey == KEY_NUMLOCK || bKey == KEY_SCROLLLOCK)
+        else if (bKey == KEY_LSHIFT || bKey == KEY_RSHIFT || bKey == KEY_CAPSLOCK || bKey == KEY_NUMLOCK || bKey == KEY_SCROLLLOCK)
         {
             ;
         }
         else
         {
-            if(bKey == KEY_TAB)
+            if (bKey == KEY_TAB)
                 bKey = ' ';
-            
-            if(iCommandBufferIndex < CONSOLESHELL_MAXCOMMANDBUFFERCOUNT)
+
+            if (iCommandBufferIndex < CONSOLESHELL_MAXCOMMANDBUFFERCOUNT)
             {
                 vcCommandBuffer[iCommandBufferIndex++] = bKey;
                 kPrintf("%c", bKey);
@@ -111,7 +116,7 @@ void kStartConsoleShell(void)
     }
 }
 
-void kExecuteCommand(const char* pcCommandBuffer)
+void kExecuteCommand(const char *pcCommandBuffer)
 {
     int i, iSpaceIndex;
     int iCommandBufferLength, iCommandLength;
@@ -119,9 +124,9 @@ void kExecuteCommand(const char* pcCommandBuffer)
 
     iCommandBufferLength = kStrLen(pcCommandBuffer);
 
-    for (iSpaceIndex = 0; iSpaceIndex < iCommandBufferLength; iSpaceIndex++ )
+    for (iSpaceIndex = 0; iSpaceIndex < iCommandBufferLength; iSpaceIndex++)
     {
-        if(pcCommandBuffer[iSpaceIndex] == ' ')
+        if (pcCommandBuffer[iSpaceIndex] == ' ')
             break;
     }
 
@@ -129,65 +134,65 @@ void kExecuteCommand(const char* pcCommandBuffer)
     for (i = 0; i < iCount; i++)
     {
         iCommandLength = kStrLen(gs_vstCommandTable[i].pcCommand);
-        if(iCommandLength == iSpaceIndex && kMemCmp(gs_vstCommandTable[i].pcCommand, pcCommandBuffer, iSpaceIndex) == 0)
+        if (iCommandLength == iSpaceIndex && kMemCmp(gs_vstCommandTable[i].pcCommand, pcCommandBuffer, iSpaceIndex) == 0)
         {
             gs_vstCommandTable[i].pfFunction(pcCommandBuffer + iSpaceIndex + 1);
             break;
         }
     }
 
-    if(i >= iCount)
+    if (i >= iCount)
         kPrintf("'%s' is not found\n", pcCommandBuffer);
 }
 
-void kInitializeParameter(PARAMETERLIST* pstList, const char* pcParameter)
+void kInitializeParameter(PARAMETERLIST *pstList, const char *pcParameter)
 {
     pstList->pcBuffer = pcParameter;
     pstList->iLength = kStrLen(pcParameter);
     pstList->iCurrentPosition = 0;
 }
 
-int kGetNextParameter(PARAMETERLIST* pstList, char* pcParameter)
+int kGetNextParameter(PARAMETERLIST *pstList, char *pcParameter)
 {
     int i;
     int iLength;
 
-    if(pstList->iLength <= pstList->iCurrentPosition)
+    if (pstList->iLength <= pstList->iCurrentPosition)
         return 0;
-    
+
     for (i = pstList->iCurrentPosition; i < pstList->iLength; i++)
     {
-        if(pstList->pcBuffer[i] == ' ')
+        if (pstList->pcBuffer[i] == ' ')
             break;
     }
-    
+
     kMemCpy(pcParameter, pstList->pcBuffer + pstList->iCurrentPosition, i);
     iLength = i - pstList->iCurrentPosition;
     pcParameter[iLength] = '\0';
 
     pstList->iCurrentPosition += iLength + 1;
-    
+
     return iLength;
 }
 
 /// command handler
 
-static void kHelp(const char* pcCommandBuffer)
+static void kHelp(const char *pcCommandBuffer)
 {
     int iCount;
     int iCursorX, iCursorY;
     int iLength, iMaxCommandLength = 0;
 
-    kPrintf( "=========================================================\n" );
-    kPrintf( "                  MINT64 Shell Help by dy !              \n" );
-    kPrintf( "=========================================================\n" );
+    kPrintf("=========================================================\n");
+    kPrintf("                  MINT64 Shell Help by dy !              \n");
+    kPrintf("=========================================================\n");
 
     iCount = sizeof(gs_vstCommandTable) / sizeof(SHELLCOMMANDENTRY);
 
     for (int i = 0; i < iCount; i++)
     {
         iLength = kStrLen(gs_vstCommandTable[i].pcCommand);
-        if(iLength > iMaxCommandLength)
+        if (iLength > iMaxCommandLength)
             iMaxCommandLength = iLength;
     }
 
@@ -198,10 +203,10 @@ static void kHelp(const char* pcCommandBuffer)
         kSetCursor(iMaxCommandLength, iCursorY);
         kPrintf(" - %s\n", gs_vstCommandTable[i].pcHelp);
 
-        if((i != 0) && ((i % 20) == 0))
+        if ((i != 0) && ((i % 20) == 0))
         {
             kPrintf("Press any key to continue... ('q' is exit) : ");
-            if(kGetCh() == 'q')
+            if (kGetCh() == 'q')
             {
                 kPrintf("\n");
                 break;
@@ -211,18 +216,18 @@ static void kHelp(const char* pcCommandBuffer)
     }
 }
 
-static void kCls(const char* pcParameterBuffer)
+static void kCls(const char *pcParameterBuffer)
 {
     kClearScreen();
     kSetCursor(0, 1);
 }
 
-static void kShowTotalRAMSize(const char* pcParameterBuffer)
+static void kShowTotalRAMSize(const char *pcParameterBuffer)
 {
     kPrintf("Total RAM Size = %d MB\n", kGetTotalRAMSize());
 }
 
-static void kStringToDecimalHexTest(const char* pcParameterBuffer)
+static void kStringToDecimalHexTest(const char *pcParameterBuffer)
 {
     char vcParameter[100];
     int iLength;
@@ -232,17 +237,17 @@ static void kStringToDecimalHexTest(const char* pcParameterBuffer)
 
     kInitializeParameter(&stList, pcParameterBuffer);
 
-    while(1)
+    while (1)
     {
         iLength = kGetNextParameter(&stList, vcParameter);
-        if(iLength == 0)
-        {   
+        if (iLength == 0)
+        {
             break;
         }
 
         kPrintf("Param %d = '%s', Length = %d, ", iCount + 1, vcParameter, iLength);
 
-        if(kMemCmp(vcParameter, "0x", 2) == 0)
+        if (kMemCmp(vcParameter, "0x", 2) == 0)
         {
             lValue = kAToI(vcParameter + 2, 16);
             kPrintf("HEX Value = %q\n", lValue);
@@ -257,13 +262,13 @@ static void kStringToDecimalHexTest(const char* pcParameterBuffer)
     }
 }
 
-static void kShutdown(const char* pcParameterBuffer)
+static void kShutdown(const char *pcParameterBuffer)
 {
     kPrintf("System Shutdown Start...\n");
 
     kPrintf("Cache Flush... ");
 
-    if(kFlushFileSystemCache() == TRUE)
+    if (kFlushFileSystemCache() == TRUE)
         kPrintf("Pass\n");
     else
         kPrintf("Fail\n");
@@ -273,7 +278,7 @@ static void kShutdown(const char* pcParameterBuffer)
     kReboot();
 }
 
-static void kSetTimer(const char* pcParameterBuffer)
+static void kSetTimer(const char *pcParameterBuffer)
 {
     char vcParameter[100];
     PARAMETERLIST stList;
@@ -282,7 +287,7 @@ static void kSetTimer(const char* pcParameterBuffer)
 
     kInitializeParameter(&stList, pcParameterBuffer);
 
-    if(kGetNextParameter(&stList, vcParameter) == 0)
+    if (kGetNextParameter(&stList, vcParameter) == 0)
     {
         kPrintf("usage: settimer 10(ms) 1(periodic)");
         return;
@@ -293,7 +298,7 @@ static void kSetTimer(const char* pcParameterBuffer)
     kPrintf("Time = %d ms, Periodic = %d Change Complete\n", lValue, bPeriodic);
 }
 
-static void kSleepUsingPIT(const char* pcParameterBuffer)
+static void kSleepUsingPIT(const char *pcParameterBuffer)
 {
     char vcParameter[100];
     int iLength;
@@ -302,7 +307,7 @@ static void kSleepUsingPIT(const char* pcParameterBuffer)
 
     kInitializeParameter(&stList, pcParameterBuffer);
 
-    if(kGetNextParameter(&stList, vcParameter) == 0)
+    if (kGetNextParameter(&stList, vcParameter) == 0)
     {
         kPrintf("usage: sleep 100(ms)");
         return;
@@ -324,7 +329,7 @@ static void kSleepUsingPIT(const char* pcParameterBuffer)
     kInitializePIT(MSTOCOUNT(1), TRUE);
 }
 
-static void kReadTimeStampCounter(const char* pcParameterBuffer)
+static void kReadTimeStampCounter(const char *pcParameterBuffer)
 {
     QWORD qwTSC;
 
@@ -332,7 +337,7 @@ static void kReadTimeStampCounter(const char* pcParameterBuffer)
     kPrintf("Time Stamp Counter : %q\n", qwTSC);
 }
 
-static void kMeasureCPUSpeed(const char* pcParameterBuffer)
+static void kMeasureCPUSpeed(const char *pcParameterBuffer)
 {
     QWORD qwLastTSC, qwTotalTSC = 0;
 
@@ -348,11 +353,11 @@ static void kMeasureCPUSpeed(const char* pcParameterBuffer)
     }
     kInitializePIT(MSTOCOUNT(1), TRUE);
     kEnableInterrupt();
-    
+
     kPrintf("\nCPU Speed = %d MHz\n", qwTotalTSC / 10 / 1000 / 1000);
 }
 
-static void kShowDateAndTime(const char* pcParameterBuffer)
+static void kShowDateAndTime(const char *pcParameterBuffer)
 {
     BYTE bSecond, bMinute, bHour;
     BYTE bDayOfWeek, bDayOfMonth, bMonth;
@@ -364,14 +369,18 @@ static void kShowDateAndTime(const char* pcParameterBuffer)
     kPrintf("%d-%d-%d %s / %d:%d:%d\n", wYear, bMonth, bDayOfMonth, kConvertDayOfWeekToString(bDayOfWeek), bHour, bMinute, bSecond);
 }
 
-static TCB gs_vstTask[2] = {0,};
-static QWORD gs_vstStack[1024] = {0,};
+static TCB gs_vstTask[2] = {
+    0,
+};
+static QWORD gs_vstStack[1024] = {
+    0,
+};
 
 static void kTestTask(void)
 {
     int i = 0;
 
-    while(1)
+    while (1)
     {
         kPrintf("[%d] This message is from kTestTask.Press any key to switch kConsoleShell!\n", i++);
         kGetCh();
@@ -384,8 +393,8 @@ static void kTestTask1(void)
 {
     BYTE bData;
     int i = 0, iX = 0, iY = 0, iMargin;
-    CHARACTER* pstScreen = (CHARACTER*) CONSOLE_VIDEOMEMORYADDRESS;
-    TCB* pstRunningTask;
+    CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
+    TCB *pstRunningTask;
 
     pstRunningTask = kGetRunningTask();
     iMargin = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) % 10;
@@ -396,22 +405,22 @@ static void kTestTask1(void)
         {
         case 0:
             iX++;
-            if(iX >= (CONSOLE_WIDTH - iMargin))
+            if (iX >= (CONSOLE_WIDTH - iMargin))
                 i = 1;
             break;
         case 1:
             iY++;
-            if(iY >= (CONSOLE_HEIGHT - iMargin))
+            if (iY >= (CONSOLE_HEIGHT - iMargin))
                 i = 2;
             break;
         case 2:
             iX--;
-            if(iX < iMargin)
+            if (iX < iMargin)
                 i = 3;
             break;
         case 3:
             iY--;
-            if(iY < iMargin)
+            if (iY < iMargin)
                 i = 0;
             break;
         default:
@@ -422,73 +431,72 @@ static void kTestTask1(void)
         pstScreen[iY * CONSOLE_WIDTH + iX].b_attribute = bData & 0x0F;
         bData++;
 
-        //kSchedule();
+        // kSchedule();
     }
-    
+
     kExitTask();
 }
 
 static void kTestTask2(void)
 {
     int i = 0, iOffset;
-    CHARACTER* pstScreen = (CHARACTER*) CONSOLE_VIDEOMEMORYADDRESS;
-    TCB* pstRunningTask;
+    CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
+    TCB *pstRunningTask;
     char vcData[4] = {'-', '\\', '|', '/'};
 
     pstRunningTask = kGetRunningTask();
     iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
     iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT - (iOffset % (CONSOLE_WIDTH * CONSOLE_HEIGHT));
 
-    while(TRUE)
+    while (TRUE)
     {
-        pstScreen[iOffset].b_charactor = vcData[i%4];
+        pstScreen[iOffset].b_charactor = vcData[i % 4];
         pstScreen[iOffset].b_attribute = (iOffset % 15) + 1;
         i++;
 
-        //kSchedule();
+        // kSchedule();
     }
-
 }
 
-static void kCreateTestTask(const char* pcParameterBuffer)
+static void kCreateTestTask(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcType[30];
     char vcCount[30];
     int i;
-    
+
     kInitializeParameter(&stList, pcParameterBuffer);
     kGetNextParameter(&stList, vcType);
     kGetNextParameter(&stList, vcCount);
-    switch( kAToI( vcType, 10 ) )
-    {     
+    switch (kAToI(vcType, 10))
+    {
     case 1:
-        for( i = 0 ; i < kAToI( vcCount, 10 ) ; i++ )
-        { 
-            if( kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, ( QWORD ) kTestTask1 ) == NULL)
+        for (i = 0; i < kAToI(vcCount, 10); i++)
+        {
+            if (kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)kTestTask1) == NULL)
             {
                 break;
             }
         }
-    
-        kPrintf( "Task1 %d Created~!\n", i );
+
+        kPrintf("Task1 %d Created~!\n", i);
         break;
     case 2:
     default:
-        for( i = 0 ; i < kAToI( vcCount, 10 ) ; i++ )
-        { 
-            if( kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, ( QWORD ) kTestTask2 ) == NULL)
+        for (i = 0; i < kAToI(vcCount, 10); i++)
+        {
+            if (kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)kTestTask2) == NULL)
             {
                 break;
             }
         }
-    
-        kPrintf( "Task2 %d Created~!\n", i );
+
+        kPrintf("Task2 %d Created~!\n", i);
         break;
-    } 
+    }
 }
 
-static void kChangeTaskPriority(const char* pcParameterBuffer)
+static void kChangeTaskPriority(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
 
@@ -501,35 +509,35 @@ static void kChangeTaskPriority(const char* pcParameterBuffer)
     kGetNextParameter(&stList, vcID);
     kGetNextParameter(&stList, vcPriority);
 
-    if(kMemCmp(vcID, "0x", 2) == 0)
-        qwID = kAToI(vcID+2, 16);   
+    if (kMemCmp(vcID, "0x", 2) == 0)
+        qwID = kAToI(vcID + 2, 16);
     else
         qwID = kAToI(vcID, 10);
 
     bPriority = kAToI(vcPriority, 10);
 
     kPrintf("Change Task Priority ID [0x%q] Priority[%d] ", qwID, bPriority);
-    if(kChangePriority(qwID, bPriority) == TRUE)
+    if (kChangePriority(qwID, bPriority) == TRUE)
         kPrintf("Success\n");
     else
         kPrintf("Fail\n");
 }
 
-static void kShowTaskList(const char* pcParameterBuffer)
+static void kShowTaskList(const char *pcParameterBuffer)
 {
-    TCB* pstTCB;
+    TCB *pstTCB;
     int iCount = 0;
 
     for (int i = 0; i < TASK_MAXCOUNT; i++)
     {
         pstTCB = kGetTCBInTCBPool(i);
-        if((pstTCB->stLink.qwID >> 32) != 0)
+        if ((pstTCB->stLink.qwID >> 32) != 0)
         {
-            if((iCount != 0) && ((iCount % 10) == 0))
+            if ((iCount != 0) && ((iCount % 10) == 0))
             {
                 kPrintf("Press any key to continue ... ('q' is exit): ");
 
-                if(kGetCh() == 'q')
+                if (kGetCh() == 'q')
                 {
                     kPrintf("\n");
                     break;
@@ -539,39 +547,38 @@ static void kShowTaskList(const char* pcParameterBuffer)
             }
 
             kPrintf("[%d] Task ID[0x%Q], Priority[%d], Flags[0x%Q], Thread[%d]\n \
-   Parent PID[0x%Q], Memory Address[0x%Q], Size[0x%Q]\n", 
-                1 + iCount++, pstTCB->stLink.qwID, GETPRIORITY(pstTCB->qwFlags), pstTCB->qwFlags, kGetListCount(&(pstTCB->stChildThreadList)),
-                pstTCB->qwParentProcessID, pstTCB->pvMemoryAddress, pstTCB->qwMemorySize);
-            
+   Parent PID[0x%Q], Memory Address[0x%Q], Size[0x%Q]\n",
+                    1 + iCount++, pstTCB->stLink.qwID, GETPRIORITY(pstTCB->qwFlags), pstTCB->qwFlags, kGetListCount(&(pstTCB->stChildThreadList)),
+                    pstTCB->qwParentProcessID, pstTCB->pvMemoryAddress, pstTCB->qwMemorySize);
         }
     }
 }
 
-static void kKillTask(const char* pcParameterBuffer)
+static void kKillTask(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcID[30];
     QWORD qwID;
-    TCB* pstTCB;
+    TCB *pstTCB;
 
     kInitializeParameter(&stList, pcParameterBuffer);
     kGetNextParameter(&stList, vcID);
 
-    if(kMemCmp(vcID, "0x", 2) == 0)
-        qwID = kAToI(vcID+2, 16);   
+    if (kMemCmp(vcID, "0x", 2) == 0)
+        qwID = kAToI(vcID + 2, 16);
     else
         qwID = kAToI(vcID, 10);
 
-    if(qwID != 0xFFFFFFFF)
+    if (qwID != 0xFFFFFFFF)
     {
         pstTCB = kGetTCBInTCBPool(GETTCBOFFSET(qwID));
         qwID = pstTCB->stLink.qwID;
 
-        if((qwID >> 32) != 0 && ((pstTCB->qwFlags & TASK_FLAGS_SYSTEM) == 0x00))
+        if ((qwID >> 32) != 0 && ((pstTCB->qwFlags & TASK_FLAGS_SYSTEM) == 0x00))
         {
             kPrintf("Kill task ID [0x%q] ", qwID);
-            
-            if(kEndTask(qwID) == TRUE)
+
+            if (kEndTask(qwID) == TRUE)
                 kPrintf("Success\n");
             else
                 kPrintf("Fail\n");
@@ -586,22 +593,20 @@ static void kKillTask(const char* pcParameterBuffer)
             pstTCB = kGetTCBInTCBPool(i);
             qwID = pstTCB->stLink.qwID;
 
-            if((qwID >> 32) != 0 && ((pstTCB->qwFlags & TASK_FLAGS_SYSTEM) == 0x00))
+            if ((qwID >> 32) != 0 && ((pstTCB->qwFlags & TASK_FLAGS_SYSTEM) == 0x00))
             {
                 kPrintf("Kill task ID [0x%q] ", qwID);
-        
-                if(kEndTask(qwID) == TRUE)
+
+                if (kEndTask(qwID) == TRUE)
                     kPrintf("Success\n");
                 else
                     kPrintf("Fail\n");
             }
         }
-        
     }
-
 }
 
-static void kCPULoad(const char* pcParameterBuffer)
+static void kCPULoad(const char *pcParameterBuffer)
 {
     kPrintf("Processor Load: %d%%\n", kGetProcessorLoad());
 }
@@ -614,7 +619,7 @@ static void kPrintNumberTask(void)
     QWORD qwTickCount;
 
     qwTickCount = kGetTickCount();
-    while((kGetTickCount() - qwTickCount) < 50)
+    while ((kGetTickCount() - qwTickCount) < 50)
         kSchedule();
 
     for (int i = 0; i < 5; i++)
@@ -625,17 +630,18 @@ static void kPrintNumberTask(void)
         gs_qwAdder += 1;
         kUnlock(&(gs_stMutex));
 
-        for(int j = 0; j < 30000; j++);
+        for (int j = 0; j < 30000; j++)
+            ;
     }
 
     qwTickCount = kGetTickCount();
-    while((kGetTickCount() - qwTickCount) < 1000)
+    while ((kGetTickCount() - qwTickCount) < 1000)
         kSchedule();
 
     kExitTask();
 }
 
-static void kTestMutex(const char* pcParameterBuffer)
+static void kTestMutex(const char *pcParameterBuffer)
 {
     int i;
 
@@ -645,9 +651,9 @@ static void kTestMutex(const char* pcParameterBuffer)
 
     for (i = 0; i < 3; i++)
     {
-        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) kPrintNumberTask);
+        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)kPrintNumberTask);
     }
-    
+
     kPrintf("Wait Util %d Task End ... \n", i);
     kGetCh();
 }
@@ -656,23 +662,23 @@ static void kCreateThreadTask(void)
 {
     for (int i = 0; i < 3; i++)
     {
-        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) kTestTask2);
+        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)kTestTask2);
     }
-    
-    while(1)
+
+    while (1)
     {
         kSleep(1);
     }
 }
 
-static void kTestThread(const char* pcParameterBuffer)
+static void kTestThread(const char *pcParameterBuffer)
 {
-    TCB* pstPorcess;
+    TCB *pstPorcess;
 
-    pstPorcess = kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_PROCESS, (void*)0xEEEEEEEE,
-    0x1000, (QWORD) kCreateThreadTask);
+    pstPorcess = kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_PROCESS, (void *)0xEEEEEEEE,
+                             0x1000, (QWORD)kCreateThreadTask);
 
-    if(pstPorcess != NULL)
+    if (pstPorcess != NULL)
         kPrintf("Process [0x%Q] Create Success.. :)\n", pstPorcess->stLink.qwID);
     else
         kPrintf("Process Create Fail.. :(\n");
@@ -690,15 +696,17 @@ static void kDropCharactorThread(void)
 {
     int iX, iY;
 
-    char vcText[2] = {0,};
+    char vcText[2] = {
+        0,
+    };
 
     iX = kRandom() % CONSOLE_WIDTH;
 
-    while(1)
+    while (1)
     {
         kSleep(kRandom() % 20);
 
-        if((kRandom() % 20) < 15)
+        if ((kRandom() % 20) < 15)
         {
             vcText[0] = ' ';
             for (int i = 0; i < CONSOLE_HEIGHT; i++)
@@ -706,7 +714,6 @@ static void kDropCharactorThread(void)
                 kPrintStringXY(iX, i, vcText);
                 kSleep(50);
             }
-            
         }
         else
         {
@@ -716,7 +723,6 @@ static void kDropCharactorThread(void)
                 kPrintStringXY(iX, i, vcText);
                 kSleep(50);
             }
-            
         }
     }
 }
@@ -727,29 +733,29 @@ static void kMatrixProcess(void)
 
     for (i = 0; i < 300; i++)
     {
-        if(kCreateTask(TASK_FLAGS_THREAD | TASK_FLAGS_LOW, 0, 0, (QWORD) kDropCharactorThread) == NULL)
+        if (kCreateTask(TASK_FLAGS_THREAD | TASK_FLAGS_LOW, 0, 0, (QWORD)kDropCharactorThread) == NULL)
             break;
-        
+
         kSleep(kRandom() % 5 + 5);
     }
 
     kPrintf("%d Thread is created\n", i);
-    
+
     kGetCh();
 }
 
-static void kShowMatrix(const char* pcParameterBuffer)
+static void kShowMatrix(const char *pcParameterBuffer)
 {
-    TCB* pstProcess;
+    TCB *pstProcess;
 
-    pstProcess = kCreateTask(TASK_FLAGS_PROCESS | TASK_FLAGS_LOW, (void*) 0xE00000, 0xE00000,
-    (QWORD) kMatrixProcess);
+    pstProcess = kCreateTask(TASK_FLAGS_PROCESS | TASK_FLAGS_LOW, (void *)0xE00000, 0xE00000,
+                             (QWORD)kMatrixProcess);
 
-    if(pstProcess != NULL)
+    if (pstProcess != NULL)
     {
         kPrintf("Matrix Process [0x%Q] Create Success\n");
 
-        while((pstProcess->stLink.qwID >> 32) != 0)
+        while ((pstProcess->stLink.qwID >> 32) != 0)
             kSleep(100);
     }
     else
@@ -761,7 +767,7 @@ static void kFPUTestTask(void)
     double dValue1;
     double dValue2;
 
-    TCB* pstRunningTask;
+    TCB *pstRunningTask;
 
     QWORD qwCount = 0;
     QWORD qwRandomValue;
@@ -769,14 +775,14 @@ static void kFPUTestTask(void)
     int iOffset;
 
     char vcData[4] = {'-', '\\', '|', '/'};
-    CHARACTER* pstScreen = (CHARACTER*) CONSOLE_VIDEOMEMORYADDRESS;
+    CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
 
     pstRunningTask = kGetRunningTask();
 
     iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
     iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT - (iOffset % (CONSOLE_WIDTH * CONSOLE_HEIGHT));
 
-    while(TRUE)
+    while (TRUE)
     {
         dValue1 = 1;
         dValue2 = 1;
@@ -784,18 +790,18 @@ static void kFPUTestTask(void)
         for (int i = 0; i < 10; i++)
         {
             qwRandomValue = kRandom();
-            dValue1 *= (double) qwRandomValue;
-            dValue2 *= (double) qwRandomValue;
+            dValue1 *= (double)qwRandomValue;
+            dValue2 *= (double)qwRandomValue;
 
             kSleep(1);
 
             qwRandomValue = kRandom();
 
-            dValue1 /= (double) qwRandomValue;
-            dValue2 /= (double) qwRandomValue;
+            dValue1 /= (double)qwRandomValue;
+            dValue2 /= (double)qwRandomValue;
         }
-        
-        if(dValue1 != dValue2)
+
+        if (dValue1 != dValue2)
         {
             kPrintf("Value is not same..! [%f] != [%f]\n", dValue1, dValue2);
 
@@ -807,27 +813,27 @@ static void kFPUTestTask(void)
         pstScreen[iOffset].b_charactor = vcData[qwCount % 4];
         pstScreen[iOffset].b_attribute = (iOffset % 15) + 1;
     }
-} 
+}
 
-static void kTestPIE(const char* pcParameterBuffer)
+static void kTestPIE(const char *pcParameterBuffer)
 {
     double dResult;
 
     kPrintf("PIE calcuation test\n");
     kPrintf("Result: 355 / 113 = ");
 
-    dResult = (double) 355 / 113;
+    dResult = (double)355 / 113;
 
-    kPrintf("%d.%d%d\n", (QWORD)dResult, ((QWORD)(dResult*10) % 10), ((QWORD) (dResult * 100) % 10));
+    kPrintf("%d.%d%d\n", (QWORD)dResult, ((QWORD)(dResult * 10) % 10), ((QWORD)(dResult * 100) % 10));
 
     for (int i = 0; i < 100; i++)
     {
         kSleep(0.001);
-        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) kFPUTestTask);
+        kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)kFPUTestTask);
     }
 }
 
-static void kShowDynamicMemoryInformation(const char* pcParameterBuffer)
+static void kShowDynamicMemoryInformation(const char *pcParameterBuffer)
 {
     QWORD qwStartAddress, qwTotalSize, qwMetaSize, qwUsedSize;
 
@@ -840,10 +846,10 @@ static void kShowDynamicMemoryInformation(const char* pcParameterBuffer)
     kPrintf("Used Size: [0x%Q]byte, [%d]KB\n", qwUsedSize, qwUsedSize / 1024);
 }
 
-static void kTestSequentialAllocation(const char* pcParameterBuffer)
+static void kTestSequentialAllocation(const char *pcParameterBuffer)
 {
-    DYNAMICMEMORY* pstMemory;
-    QWORD* pqwBuffer;
+    DYNAMICMEMORY *pstMemory;
+    QWORD *pqwBuffer;
 
     kPrintf("============ Dynamic Memory Test ============\n");
     pstMemory = kGetDynamicMemoryManager();
@@ -856,7 +862,7 @@ static void kTestSequentialAllocation(const char* pcParameterBuffer)
         for (long j = 0; j < (pstMemory->iBlockCountOfSmallestBlock >> i); j++)
         {
             pqwBuffer = kAllocateMemory(DYNAMICMEMORY_MIN_SIZE << i);
-            if(pqwBuffer == NULL)
+            if (pqwBuffer == NULL)
             {
                 kPrintf("\nAllocation Fail\n");
                 return;
@@ -864,10 +870,10 @@ static void kTestSequentialAllocation(const char* pcParameterBuffer)
 
             for (long k = 0; k < (DYNAMICMEMORY_MIN_SIZE << i) / 8; k++)
                 pqwBuffer[k] = k;
-            
+
             for (long k = 0; k < (DYNAMICMEMORY_MIN_SIZE << i) / 8; k++)
             {
-                if(pqwBuffer[k] != k)
+                if (pqwBuffer[k] != k)
                 {
                     kPrintf("\nCompare Fail\n");
                     return;
@@ -881,7 +887,7 @@ static void kTestSequentialAllocation(const char* pcParameterBuffer)
 
         for (long j = 0; j < (pstMemory->iBlockCountOfSmallestBlock >> i); j++)
         {
-            if(kFreeMemory((void*) (pstMemory->qwStartAddress + (DYNAMICMEMORY_MIN_SIZE << i) * j)) == FALSE)
+            if (kFreeMemory((void *)(pstMemory->qwStartAddress + (DYNAMICMEMORY_MIN_SIZE << i) * j)) == FALSE)
             {
                 kPrintf("\nFree Fail\n");
                 return;
@@ -898,10 +904,10 @@ static void kTestSequentialAllocation(const char* pcParameterBuffer)
 
 static void kRandomAllocationTask(void)
 {
-    TCB* pstTask;
+    TCB *pstTask;
     QWORD qwMemorySize;
     char vcBuffer[200];
-    BYTE* pbAllocationBuffer;
+    BYTE *pbAllocationBuffer;
 
     pstTask = kGetRunningTask();
     int iY = (pstTask->stLink.qwID) % 15 + 9;
@@ -913,10 +919,10 @@ static void kRandomAllocationTask(void)
             qwMemorySize = ((kRandom() % (32 * 1024)) + 1) * 1024;
             pbAllocationBuffer = kAllocateMemory(qwMemorySize);
 
-            if(pbAllocationBuffer == 0)
+            if (pbAllocationBuffer == 0)
                 kSleep(1);
         } while (pbAllocationBuffer == 0);
-        
+
         kSPrintf(vcBuffer, "|Address: [0x%Q] Size: [0x%Q] Allocation Success...     ", pbAllocationBuffer, qwMemorySize);
         kPrintStringXY(20, iY, vcBuffer);
         kSleep(200);
@@ -930,13 +936,13 @@ static void kRandomAllocationTask(void)
             pbAllocationBuffer[i + (qwMemorySize / 2)] = pbAllocationBuffer[i];
         }
         kSleep(200);
-        
+
         kSPrintf(vcBuffer, "|Address: [0x%Q] Size: [0x%Q] Data Verify...     ", pbAllocationBuffer, qwMemorySize);
         kPrintStringXY(20, iY, vcBuffer);
 
         for (int i = 0; i < qwMemorySize / 2; i++)
         {
-            if(pbAllocationBuffer[i] != pbAllocationBuffer[i+(qwMemorySize/2)])
+            if (pbAllocationBuffer[i] != pbAllocationBuffer[i + (qwMemorySize / 2)])
             {
                 kPrintf("Task ID[0x%Q] Verify Fail\n", pstTask->stLink.qwID);
                 kExitTask();
@@ -950,22 +956,21 @@ static void kRandomAllocationTask(void)
     kExitTask();
 }
 
-static void kTestRandomAllocation(const char* pcParameterBuffer)
+static void kTestRandomAllocation(const char *pcParameterBuffer)
 {
     for (int i = 0; i < 1000; i++)
     {
-        kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD, 0, 0, (QWORD) kRandomAllocationTask);
+        kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD, 0, 0, (QWORD)kRandomAllocationTask);
     }
-    
 }
 
-static void kShowHDDInformation(const char* pcParameterBuffer)
+static void kShowHDDInformation(const char *pcParameterBuffer)
 {
     HDDINFORMATION stHDD;
 
     char vcBuffer[100];
 
-    if(kReadHDDInformation(TRUE, TRUE, &stHDD) == FALSE)
+    if (kReadHDDInformation(TRUE, TRUE, &stHDD) == FALSE)
     {
         kPrintf("HDD information read fail\n");
         return;
@@ -976,7 +981,7 @@ static void kShowHDDInformation(const char* pcParameterBuffer)
     kMemCpy(vcBuffer, stHDD.vwModelNumber, sizeof(stHDD.vwModelNumber));
     vcBuffer[sizeof(stHDD.vwModelNumber) - 1] = '\0';
     kPrintf("Model Number:\t %s\n", vcBuffer);
- 
+
     kMemCpy(vcBuffer, stHDD.vwSerialNumber, sizeof(stHDD.vwSerialNumber));
     vcBuffer[sizeof(stHDD.vwSerialNumber) - 1] = '\0';
     kPrintf("Serial Number:\t %s\n", vcBuffer);
@@ -988,12 +993,12 @@ static void kShowHDDInformation(const char* pcParameterBuffer)
     kPrintf("Total Sector:\t %d Sector, %dMB\n", stHDD.dwTotalSectors, stHDD.dwTotalSectors / 2 / 1024);
 }
 
-static void kReadSector(const char* pcParameterBuffer)
+static void kReadSector(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
 
     char vcLBA[50], vcSectorCount[50];
-    char* pcBuffer;
+    char *pcBuffer;
 
     DWORD dwLBA;
 
@@ -1004,7 +1009,7 @@ static void kReadSector(const char* pcParameterBuffer)
 
     kInitializeParameter(&stList, pcParameterBuffer);
 
-    if((kGetNextParameter(&stList, vcLBA) == 0) || (kGetNextParameter(&stList, vcSectorCount) == 0))
+    if ((kGetNextParameter(&stList, vcLBA) == 0) || (kGetNextParameter(&stList, vcSectorCount) == 0))
     {
         kPrintf("usage) readsector 0(LBA) 10(count)\n");
 
@@ -1016,37 +1021,37 @@ static void kReadSector(const char* pcParameterBuffer)
 
     pcBuffer = kAllocateMemory(iSectorCount * 512);
 
-    if(kReadHDDSector(TRUE, TRUE, dwLBA, iSectorCount, pcBuffer) == iSectorCount)
+    if (kReadHDDSector(TRUE, TRUE, dwLBA, iSectorCount, pcBuffer) == iSectorCount)
     {
         kPrintf("LBA [%d], [%d] Sector Read Success!", dwLBA, iSectorCount);
 
-        for(int j = 0; j < iSectorCount; j++)
+        for (int j = 0; j < iSectorCount; j++)
         {
-            for(int i = 0; i < 512; i++)
-            {       
-                if(!((j == 0) && (i == 0)) && ((i % 256) == 0))
+            for (int i = 0; i < 512; i++)
+            {
+                if (!((j == 0) && (i == 0)) && ((i % 256) == 0))
                 {
                     kPrintf("\nPress and key to continue ... ('q' is exit) : ");
 
-                    if(kGetCh() == 'q')
+                    if (kGetCh() == 'q')
                     {
                         bExit = TRUE;
                         break;
                     }
                 }
 
-                if((i%16) == 0)
+                if ((i % 16) == 0)
                     kPrintf("\n[LBA%d, Offset:%d]\t| ", dwLBA + j, i);
 
                 bData = pcBuffer[j * 512 + i] & 0xFF;
 
-                if(bData < 16)
+                if (bData < 16)
                     kPrintf("0");
 
                 kPrintf("%X ", bData);
             }
 
-            if(bExit == TRUE)
+            if (bExit == TRUE)
                 break;
         }
 
@@ -1058,25 +1063,25 @@ static void kReadSector(const char* pcParameterBuffer)
     kFreeMemory(pcBuffer);
 }
 
-static void kWriteSector(const char* pcParameterBuffer)
+static void kWriteSector(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
 
     char vcLBA[50], vcSectorCount[50];
-    char* pcBuffer;
+    char *pcBuffer;
 
     static DWORD s_dwWriteCount = 0;
     DWORD dwLBA;
 
     int iSectorCount;
-    
+
     BOOL bExit = FALSE;
-    
+
     BYTE bData;
 
     kInitializeParameter(&stList, pcParameterBuffer);
 
-    if((kGetNextParameter(&stList, vcLBA) == 0) || (kGetNextParameter(&stList, vcSectorCount) == 0))
+    if ((kGetNextParameter(&stList, vcLBA) == 0) || (kGetNextParameter(&stList, vcSectorCount) == 0))
     {
         kPrintf("usage) writesector 0(LBA) 10(count)\n");
 
@@ -1089,16 +1094,16 @@ static void kWriteSector(const char* pcParameterBuffer)
     s_dwWriteCount++;
     pcBuffer = kAllocateMemory(iSectorCount * 512);
 
-    for(int j = 0; j < iSectorCount; j++)
+    for (int j = 0; j < iSectorCount; j++)
     {
-        for(int i = 0; i < 512; i += 8)
+        for (int i = 0; i < 512; i += 8)
         {
-            *(DWORD*)&(pcBuffer[j * 512 + i]) = dwLBA + j;
-            *(DWORD*)&(pcBuffer[j * 512 + i + 4]) = s_dwWriteCount;
+            *(DWORD *)&(pcBuffer[j * 512 + i]) = dwLBA + j;
+            *(DWORD *)&(pcBuffer[j * 512 + i + 4]) = s_dwWriteCount;
         }
     }
 
-    if(kWriteHDDSector(TRUE, TRUE, dwLBA, iSectorCount, pcBuffer) != iSectorCount)
+    if (kWriteHDDSector(TRUE, TRUE, dwLBA, iSectorCount, pcBuffer) != iSectorCount)
     {
         kPrintf("Write Fail..\n");
 
@@ -1107,31 +1112,31 @@ static void kWriteSector(const char* pcParameterBuffer)
 
     kPrintf("LBA [%d], [%d] Sector Read Success!", dwLBA, iSectorCount);
 
-    for(int j = 0; j < iSectorCount; j++)
+    for (int j = 0; j < iSectorCount; j++)
     {
-        for(int i = 0; i < 512; i++)
+        for (int i = 0; i < 512; i++)
         {
-            if(!((j == 0) && (i == 0)) && ((i % 256) == 0))
+            if (!((j == 0) && (i == 0)) && ((i % 256) == 0))
             {
                 kPrintf("\nPress any key to continue... ('q' is exit) : ");
-                if(kGetCh() == 'q')
+                if (kGetCh() == 'q')
                 {
                     bExit = TRUE;
                     break;
                 }
             }
 
-            if((i%16) == 0)
+            if ((i % 16) == 0)
                 kPrintf("\n[LBA:%d, Offset:%d]\t| ", dwLBA + j, i);
 
             bData = pcBuffer[j * 512 + i] & 0xFF;
-            if(bData < 16)
+            if (bData < 16)
                 kPrintf("0");
 
             kPrintf("%X ", bData);
         }
 
-        if(bExit == TRUE)
+        if (bExit == TRUE)
             break;
     }
 
@@ -1139,9 +1144,9 @@ static void kWriteSector(const char* pcParameterBuffer)
     kFreeMemory(pcBuffer);
 }
 
-static void kMountHDD(const char* pcParameterBuffer)
+static void kMountHDD(const char *pcParameterBuffer)
 {
-    if(kMount() == FALSE)
+    if (kMount() == FALSE)
     {
         kPrintf("HDD Mount Fail..\n");
 
@@ -1151,9 +1156,9 @@ static void kMountHDD(const char* pcParameterBuffer)
     kPrintf("HDD Mount Success~!\n");
 }
 
-static void kFormatHDD(const char* pcParameterBuffer)
+static void kFormatHDD(const char *pcParameterBuffer)
 {
-    if(kFormat() == FALSE)
+    if (kFormat() == FALSE)
     {
         kPrintf("HDD Formatting Fail..\n");
 
@@ -1163,22 +1168,22 @@ static void kFormatHDD(const char* pcParameterBuffer)
     kPrintf("HDD Formatting Success~!\n");
 }
 
-static void kShowFileSystemInformation(const char* pcParameterBuffer)
+static void kShowFileSystemInformation(const char *pcParameterBuffer)
 {
     FILESYSTEMMANAGER stManager;
 
     kGetFileSystemInformation(&stManager);
 
-    kPrintf( "================== File System Information ==================\n");
-    kPrintf( "Mouted:\t\t\t\t\t %d\n", stManager.bMounted);
-    kPrintf( "Reserved Sector Count:\t\t\t %d Sector\n", stManager.dwReservedSectorCount);
-    kPrintf( "Cluster Link Table Start Address:\t %d Sector\n", stManager.dwClusterLinkAreaStartAddress);
-    kPrintf( "Cluster Link Table Size:\t\t %d Sector\n", stManager.dwClusterLinkAreaSize);
-    kPrintf( "Data Area Start Address:\t\t %d Sector\n", stManager.dwDataAreaStartAddress);
-    kPrintf( "Total Cluster Count:\t\t\t %d Cluster\n", stManager.dwTotalClusterCount);
+    kPrintf("================== File System Information ==================\n");
+    kPrintf("Mouted:\t\t\t\t\t %d\n", stManager.bMounted);
+    kPrintf("Reserved Sector Count:\t\t\t %d Sector\n", stManager.dwReservedSectorCount);
+    kPrintf("Cluster Link Table Start Address:\t %d Sector\n", stManager.dwClusterLinkAreaStartAddress);
+    kPrintf("Cluster Link Table Size:\t\t %d Sector\n", stManager.dwClusterLinkAreaSize);
+    kPrintf("Data Area Start Address:\t\t %d Sector\n", stManager.dwDataAreaStartAddress);
+    kPrintf("Total Cluster Count:\t\t\t %d Cluster\n", stManager.dwTotalClusterCount);
 }
 
-static void kCreateFileInRootDirectory(const char* pcParameterBuffer)
+static void kCreateFileInRootDirectory(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcFileName[50];
@@ -1186,14 +1191,14 @@ static void kCreateFileInRootDirectory(const char* pcParameterBuffer)
     DWORD dwCluster;
     DIRECTORYENTRY stEntry;
     int i;
-    FILE* pstFile;
+    FILE *pstFile;
 
     kInitializeParameter(&stList, pcParameterBuffer);
     iLength = kGetNextParameter(&stList, vcFileName);
 
     vcFileName[iLength] = '\0';
 
-    if((iLength > FILESYSTEM_MAXFILENAMELENGTH - 1) || (iLength == 0))
+    if ((iLength > FILESYSTEM_MAXFILENAMELENGTH - 1) || (iLength == 0))
     {
         kPrintf("Too Long or Too Short File Name\n");
 
@@ -1201,7 +1206,7 @@ static void kCreateFileInRootDirectory(const char* pcParameterBuffer)
     }
 
     pstFile = fopen(vcFileName, "w");
-    if(pstFile == NULL)
+    if (pstFile == NULL)
     {
         kPrintf("File Create Fail..\n");
 
@@ -1213,7 +1218,7 @@ static void kCreateFileInRootDirectory(const char* pcParameterBuffer)
     kPrintf("File Create Success!\n");
 }
 
-static void kDeleteFileInRootDirectory(const char* pcParameterBuffer)
+static void kDeleteFileInRootDirectory(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcFileName[50];
@@ -1225,29 +1230,29 @@ static void kDeleteFileInRootDirectory(const char* pcParameterBuffer)
     iLength = kGetNextParameter(&stList, vcFileName);
 
     vcFileName[iLength] = '\0';
-    
-    if(iLength > FILESYSTEM_MAXFILENAMELENGTH - 1 || (iLength == 0))
+
+    if (iLength > FILESYSTEM_MAXFILENAMELENGTH - 1 || (iLength == 0))
     {
         kPrintf("Too Long or Too Short File Name\n");
 
         return;
     }
 
-    if(remove(vcFileName) != 0)
+    if (remove(vcFileName) != 0)
     {
         kPrintf("File Not Found or File Opend\n");
-        
+
         return;
     }
 
     kPrintf("File Delete Success!\n");
 }
 
-static void kShowRootDirectory(const char* pcParameterBuffer)
+static void kShowRootDirectory(const char *pcParameterBuffer)
 {
-    DIR* pstDirectory;
+    DIR *pstDirectory;
     int i, iCount, iTotalCount;
-    struct dirent* pstEntry;
+    struct dirent *pstEntry;
     char vcBuffer[400];
     char vcTempValue[50];
     DWORD dwTotalByte;
@@ -1257,7 +1262,7 @@ static void kShowRootDirectory(const char* pcParameterBuffer)
     kGetFileSystemInformation(&stManager);
 
     pstDirectory = opendir("/");
-    if(pstDirectory == NULL)
+    if (pstDirectory == NULL)
     {
         kPrintf("Root Directory Read Fail\n");
 
@@ -1268,17 +1273,17 @@ static void kShowRootDirectory(const char* pcParameterBuffer)
     dwTotalByte = 0;
     dwUsedClusterCount = 0;
 
-    while(1)
+    while (1)
     {
         pstEntry = readdir(pstDirectory);
 
-        if(pstEntry == NULL)
+        if (pstEntry == NULL)
             break;
-        
+
         iTotalCount++;
         dwTotalByte += pstEntry->dwFileSize;
 
-        if(pstEntry->dwFileSize == 0)
+        if (pstEntry->dwFileSize == 0)
             dwUsedClusterCount++;
         else
             dwUsedClusterCount += (pstEntry->dwFileSize + (FILESYSTEM_CLUSTERSIZE - 1)) / FILESYSTEM_CLUSTERSIZE;
@@ -1287,18 +1292,18 @@ static void kShowRootDirectory(const char* pcParameterBuffer)
     rewinddir(pstDirectory);
     iCount = 0;
 
-    while(TRUE)
+    while (TRUE)
     {
         pstEntry = readdir(pstDirectory);
 
-        if(pstEntry == NULL)
+        if (pstEntry == NULL)
             break;
-        
+
         kMemSet(vcBuffer, ' ', sizeof(vcBuffer) - 1);
         vcBuffer[sizeof(vcBuffer) - 1] = '\0';
-        
+
         kMemCpy(vcBuffer, pstEntry->d_name, kStrLen(pstEntry->d_name));
-        
+
         kSPrintf(vcTempValue, "%d Byte", pstEntry->dwFileSize);
         kMemCpy(vcBuffer + 30, vcTempValue, kStrLen(vcTempValue));
 
@@ -1306,11 +1311,11 @@ static void kShowRootDirectory(const char* pcParameterBuffer)
         kMemCpy(vcBuffer + 55, vcTempValue, kStrLen(vcTempValue) + 1);
         kPrintf("    %s\n", vcBuffer);
 
-        if((iCount != 0) && ((iCount % 20) == 0))
+        if ((iCount != 0) && ((iCount % 20) == 0))
         {
             kPrintf("Press any key to continue... ('q' is exit) : ");
 
-            if(kGetCh == 'q')
+            if (kGetCh == 'q')
             {
                 kPrintf("\n");
                 break;
@@ -1326,13 +1331,13 @@ static void kShowRootDirectory(const char* pcParameterBuffer)
     closedir(pstDirectory);
 }
 
-static void kWriteDataToFile(const char* pcParameterBuffer)
+static void kWriteDataToFile(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcFileName[50];
     int iLength;
     int iEnterCount;
-    FILE* fp;
+    FILE *fp;
     BYTE bKey;
 
     kInitializeParameter(&stList, pcParameterBuffer);
@@ -1340,7 +1345,7 @@ static void kWriteDataToFile(const char* pcParameterBuffer)
 
     vcFileName[iLength] = '\0';
 
-    if((iLength > FILESYSTEM_MAXFILENAMELENGTH - 1) || (iLength == 0))
+    if ((iLength > FILESYSTEM_MAXFILENAMELENGTH - 1) || (iLength == 0))
     {
         kPrintf("Too Long or Too Short File Name\n");
 
@@ -1349,22 +1354,22 @@ static void kWriteDataToFile(const char* pcParameterBuffer)
 
     fp = fopen(vcFileName, "w");
 
-    if(fp == NULL)
+    if (fp == NULL)
     {
         kPrintf("%s File Open Fail..\n", vcFileName);
     }
 
     iEnterCount = 0;
 
-    while(TRUE)
+    while (TRUE)
     {
         bKey = kGetCh();
 
-        if(bKey == KEY_ENTER)
+        if (bKey == KEY_ENTER)
         {
             iEnterCount++;
 
-            if(iEnterCount >= 3)
+            if (iEnterCount >= 3)
                 break;
         }
         else
@@ -1373,7 +1378,7 @@ static void kWriteDataToFile(const char* pcParameterBuffer)
         }
 
         kPrintf("%c", bKey);
-        if(fwrite(&bKey, 1, 1, fp) != 1)
+        if (fwrite(&bKey, 1, 1, fp) != 1)
         {
             kPrintf("File Write Fail\n");
             break;
@@ -1384,13 +1389,13 @@ static void kWriteDataToFile(const char* pcParameterBuffer)
     fclose(fp);
 }
 
-static void kReadDataFromFile(const char* pcParameterBuffer)
+static void kReadDataFromFile(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcFileName[50];
     int iLength;
     int iEnterCount;
-    FILE* fp;
+    FILE *fp;
     BYTE bKey;
 
     kInitializeParameter(&stList, pcParameterBuffer);
@@ -1398,7 +1403,7 @@ static void kReadDataFromFile(const char* pcParameterBuffer)
 
     vcFileName[iLength] = '\0';
 
-    if((iLength > FILESYSTEM_MAXFILENAMELENGTH - 1) || (iLength == 0))
+    if ((iLength > FILESYSTEM_MAXFILENAMELENGTH - 1) || (iLength == 0))
     {
         kPrintf("Too Long or Too Short File Name\n");
 
@@ -1407,29 +1412,29 @@ static void kReadDataFromFile(const char* pcParameterBuffer)
 
     fp = fopen(vcFileName, "r");
 
-    if(fp == NULL)
+    if (fp == NULL)
     {
         kPrintf("%s File Open Fail..\n", vcFileName);
     }
 
     iEnterCount = 0;
 
-    while(TRUE)
+    while (TRUE)
     {
-        if(fread(&bKey, 1, 1, fp) != 1)
+        if (fread(&bKey, 1, 1, fp) != 1)
             break;
-        
+
         kPrintf("%c", bKey);
 
-        if(bKey == KEY_ENTER)
+        if (bKey == KEY_ENTER)
         {
             iEnterCount++;
 
-            if((iEnterCount != 0) && ((iEnterCount % 20) == 0))
+            if ((iEnterCount != 0) && ((iEnterCount % 20) == 0))
             {
                 kPrintf("Press any key to continue... ('q' is exit) : ");
 
-                if(kGetCh() == 'q')
+                if (kGetCh() == 'q')
                 {
                     kPrintf("\n");
                     break;
@@ -1444,10 +1449,10 @@ static void kReadDataFromFile(const char* pcParameterBuffer)
     fclose(fp);
 }
 
-static void kTestFileIO(const char* pcParameterBuffer)
+static void kTestFileIO(const char *pcParameterBuffer)
 {
-    FILE* pstFile;
-    BYTE* pbBuffer;
+    FILE *pstFile;
+    BYTE *pbBuffer;
 
     int i, j;
 
@@ -1463,7 +1468,7 @@ static void kTestFileIO(const char* pcParameterBuffer)
     dwMaxFileSize = 4 * 1024 * 1024;
 
     pbBuffer = kAllocateMemory(dwMaxFileSize);
-    if(pbBuffer == NULL)
+    if (pbBuffer == NULL)
     {
         kPrintf("Memory Allocation Fail\n");
 
@@ -1475,7 +1480,7 @@ static void kTestFileIO(const char* pcParameterBuffer)
     kPrintf("1. file open fail test...");
     pstFile = fopen("testfileio.bin", "r");
 
-    if(pstFile == NULL)
+    if (pstFile == NULL)
         kPrintf("[Pass]\n");
     else
     {
@@ -1486,7 +1491,7 @@ static void kTestFileIO(const char* pcParameterBuffer)
     kPrintf("2. file create test...");
     pstFile = fopen("testfileio.bin", "w");
 
-    if(pstFile != NULL)
+    if (pstFile != NULL)
     {
         kPrintf("[Pass]\n");
         kPrintf("   File Handle [0x%Q]\n", pstFile);
@@ -1501,8 +1506,8 @@ static void kTestFileIO(const char* pcParameterBuffer)
     for (i = 0; i < 100; i++)
     {
         kMemSet(pbBuffer, i, FILESYSTEM_CLUSTERSIZE);
-        
-        if(fwrite(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) != FILESYSTEM_CLUSTERSIZE)
+
+        if (fwrite(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) != FILESYSTEM_CLUSTERSIZE)
         {
             kPrintf("[Fail]\n");
             kPrintf("   %d Cluster Error\n", i);
@@ -1510,7 +1515,7 @@ static void kTestFileIO(const char* pcParameterBuffer)
         }
     }
 
-    if(i >= 100)
+    if (i >= 100)
         kPrintf("[Pass]\n");
 
     kPrintf("4. sequential read and verify test(cluster size)...");
@@ -1518,36 +1523,36 @@ static void kTestFileIO(const char* pcParameterBuffer)
 
     for (i = 0; i < 100; i++)
     {
-        if(fread(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) != FILESYSTEM_CLUSTERSIZE)
+        if (fread(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) != FILESYSTEM_CLUSTERSIZE)
         {
             kPrintf("[Fail]\n");
 
             return;
         }
 
-        for(j = 0; j <FILESYSTEM_CLUSTERSIZE; j++)
+        for (j = 0; j < FILESYSTEM_CLUSTERSIZE; j++)
         {
-            if(pbBuffer[j] != (BYTE)i)
+            if (pbBuffer[j] != (BYTE)i)
             {
                 kPrintf("[Fail]\n");
-                kPrintf("   %d Cluster Error. [%X] != [%X]\n", i, pbBuffer[j], (BYTE) i);
+                kPrintf("   %d Cluster Error. [%X] != [%X]\n", i, pbBuffer[j], (BYTE)i);
 
                 break;
             }
         }
     }
 
-    if(i >= 100)
+    if (i >= 100)
         kPrintf("[Pass]\n");
 
     kPrintf("5. random write test...\n");
 
     kMemSet(pbBuffer, 0, dwMaxFileSize);
 
-    fseek(pstFile, -100 *  FILESYSTEM_CLUSTERSIZE, SEEK_CUR);
+    fseek(pstFile, -100 * FILESYSTEM_CLUSTERSIZE, SEEK_CUR);
     fread(pbBuffer, 1, dwMaxFileSize, pstFile);
 
-    for(i = 0; i < 100; i++)
+    for (i = 0; i < 100; i++)
     {
         dwByteCount = (kRandom() % (sizeof(vbTempBuffer) - 1)) + 1;
         dwRandomOffset = kRandom() % (dwMaxFileSize - dwByteCount);
@@ -1557,7 +1562,7 @@ static void kTestFileIO(const char* pcParameterBuffer)
         fseek(pstFile, dwRandomOffset, SEEK_SET);
         kMemSet(vbTempBuffer, i, dwByteCount);
 
-        if(fwrite(vbTempBuffer, 1, dwByteCount, pstFile) != dwByteCount)
+        if (fwrite(vbTempBuffer, 1, dwByteCount, pstFile) != dwByteCount)
         {
             kPrintf("[Fail]\n");
             break;
@@ -1569,30 +1574,30 @@ static void kTestFileIO(const char* pcParameterBuffer)
 
         kMemSet(pbBuffer + dwRandomOffset, i, dwByteCount);
     }
-    
+
     fseek(pstFile, dwMaxFileSize - 1, SEEK_SET);
     fwrite(&i, 1, 1, pstFile);
-    pbBuffer[dwMaxFileSize - 1] = (BYTE) i;
+    pbBuffer[dwMaxFileSize - 1] = (BYTE)i;
 
     kPrintf("6. random and verify test...\n");
 
-    for(i = 0; i < 100; i++)
+    for (i = 0; i < 100; i++)
     {
         dwByteCount = (kRandom() % (sizeof(vbTempBuffer) - 1)) + 1;
-        dwRandomOffset = kRandom() % ((dwMaxFileSize) - dwByteCount);
+        dwRandomOffset = kRandom() % ((dwMaxFileSize)-dwByteCount);
 
         kPrintf("   [%d] Offset [%d] Byte [%d]...", i, dwRandomOffset, dwByteCount);
 
         fseek(pstFile, dwRandomOffset, SEEK_SET);
 
-        if(fread(vbTempBuffer, 1, dwByteCount, pstFile) != dwByteCount)
+        if (fread(vbTempBuffer, 1, dwByteCount, pstFile) != dwByteCount)
         {
             kPrintf("[Fail]\n");
             kPrintf("   Read Fail\n", dwRandomOffset);
             break;
         }
 
-        if(kMemCmp(pbBuffer + dwRandomOffset, vbTempBuffer, dwByteCount) != 0)
+        if (kMemCmp(pbBuffer + dwRandomOffset, vbTempBuffer, dwByteCount) != 0)
         {
             kPrintf("[Fail]\n");
             kPrintf("   CompareFail\n", dwRandomOffset);
@@ -1606,11 +1611,11 @@ static void kTestFileIO(const char* pcParameterBuffer)
     kPrintf("7. sequential write, read and verify test(1024byte)...\n");
     fseek(pstFile, -dwMaxFileSize, SEEK_CUR);
 
-    for(i = 0; i < (2 * 1024 * 1024 / 1024); i++)
+    for (i = 0; i < (2 * 1024 * 1024 / 1024); i++)
     {
         kPrintf("   [%d] Offset [%d] Byte [%d] Write...", i, i * 1024, 1024);
 
-        if(fwrite(pbBuffer + (i * 1024), 1, 1024, pstFile) != 1024)
+        if (fwrite(pbBuffer + (i * 1024), 1, 1024, pstFile) != 1024)
         {
             kPrintf("[Fail]\n");
             return;
@@ -1621,17 +1626,17 @@ static void kTestFileIO(const char* pcParameterBuffer)
 
     fseek(pstFile, -dwMaxFileSize, SEEK_SET);
 
-    for(i = 0; i < (dwMaxFileSize / 1024); i++)
+    for (i = 0; i < (dwMaxFileSize / 1024); i++)
     {
         kPrintf("   [%d] Offset [%d] Byte [%d] Read And Verify...", i, i * 1024, 1024);
 
-        if(fread(vbTempBuffer, 1, 1024, pstFile) != 1024)
+        if (fread(vbTempBuffer, 1, 1024, pstFile) != 1024)
         {
             kPrintf("[Fail]\n");
             return;
         }
 
-        if(kMemCmp(pbBuffer + (i * 1024), vbTempBuffer, 1024) != 0)
+        if (kMemCmp(pbBuffer + (i * 1024), vbTempBuffer, 1024) != 0)
         {
             kPrintf("[Fail]\n");
             break;
@@ -1644,35 +1649,35 @@ static void kTestFileIO(const char* pcParameterBuffer)
 
     kPrintf("8. file delete fail test...");
 
-    if(remove("testfileio.bin") != 0)
+    if (remove("testfileio.bin") != 0)
         kPrintf("[Pass]\n");
     else
         kPrintf("[Fail]\n");
-    
+
     kPrintf("9. file close test...");
 
-    if(fclose(pstFile) == 0)
+    if (fclose(pstFile) == 0)
         kPrintf("[Pass]\n");
     else
         kPrintf("[Fail]\n");
 
     kPrintf("10. file delete test...");
-    if(remove("testfileio.bin") == 0)
+    if (remove("testfileio.bin") == 0)
         kPrintf("[Pass]\n");
     else
-        kPrintf("[Fail]\n"); 
-    
+        kPrintf("[Fail]\n");
+
     kFreeMemory(pbBuffer);
 }
 
-static void kFlushCache(const char* pcParameterBuffer)
+static void kFlushCache(const char *pcParameterBuffer)
 {
     QWORD qwTickCount;
 
     qwTickCount = kGetTickCount();
 
     kPrintf("Cache Flush...");
-    if(kFlushFileSystemCache() == TRUE)
+    if (kFlushFileSystemCache() == TRUE)
         kPrintf("Pass\n");
     else
         kPrintf("Fail\n");
@@ -1680,24 +1685,24 @@ static void kFlushCache(const char* pcParameterBuffer)
     kPrintf("Total Time = %d ms\n", kGetTickCount() - qwTickCount);
 }
 
-static void kTestPerformance(const char* pcParameterBuffer)
+static void kTestPerformance(const char *pcParameterBuffer)
 {
-    FILE* pstFile;
+    FILE *pstFile;
 
     DWORD dwClusterTestFileSize;
     DWORD dwOneByteTestFileSize;
     DWORD i;
-    
+
     QWORD qwLastTickCount;
 
-    BYTE* pbBuffer;
+    BYTE *pbBuffer;
 
     dwClusterTestFileSize = 1024 * 1024;
     dwOneByteTestFileSize = 16 * 1024;
 
     pbBuffer = kAllocateMemory(dwClusterTestFileSize);
 
-    if(pbBuffer == NULL)
+    if (pbBuffer == NULL)
     {
         kPrintf("Memory Allocate Fail\n");
 
@@ -1713,7 +1718,7 @@ static void kTestPerformance(const char* pcParameterBuffer)
     remove("performance.txt");
     pstFile = fopen("performance.txt", "w");
 
-    if(pstFile == NULL)
+    if (pstFile == NULL)
     {
         kPrintf("File Open Fail..\n");
         kFreeMemory(pbBuffer);
@@ -1723,9 +1728,9 @@ static void kTestPerformance(const char* pcParameterBuffer)
 
     qwLastTickCount = kGetTickCount();
 
-    for(i = 0; i < (dwClusterTestFileSize / FILESYSTEM_CLUSTERSIZE); i++)
+    for (i = 0; i < (dwClusterTestFileSize / FILESYSTEM_CLUSTERSIZE); i++)
     {
-        if(fwrite(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) != FILESYSTEM_CLUSTERSIZE)
+        if (fwrite(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) != FILESYSTEM_CLUSTERSIZE)
         {
             kPrintf("Write Fail\n");
 
@@ -1742,10 +1747,10 @@ static void kTestPerformance(const char* pcParameterBuffer)
     fseek(pstFile, 0, SEEK_SET);
 
     qwLastTickCount = kGetTickCount();
-    
-    for(i = 0;  i < (dwClusterTestFileSize / FILESYSTEM_CLUSTERSIZE); i++)
+
+    for (i = 0; i < (dwClusterTestFileSize / FILESYSTEM_CLUSTERSIZE); i++)
     {
-        if(fread(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) != FILESYSTEM_CLUSTERSIZE)
+        if (fread(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) != FILESYSTEM_CLUSTERSIZE)
         {
             kPrintf("Read Fail\n");
 
@@ -1755,10 +1760,9 @@ static void kTestPerformance(const char* pcParameterBuffer)
 
             return;
         }
-    } 
+    }
 
     kPrintf("   sequential read(cluster size): %d ms\n", kGetTickCount() - qwLastTickCount);
-
 
     kPrintf("2. sequential r/w test(1byte)\n");
 
@@ -1768,7 +1772,7 @@ static void kTestPerformance(const char* pcParameterBuffer)
 
     pstFile = fopen("performance.txt", "w");
 
-    if(pstFile == NULL)
+    if (pstFile == NULL)
     {
         kPrintf("File Open Fail..\n");
         kFreeMemory(pbBuffer);
@@ -1778,9 +1782,9 @@ static void kTestPerformance(const char* pcParameterBuffer)
 
     qwLastTickCount = kGetTickCount();
 
-    for(i = 0; i < dwOneByteTestFileSize; i++)
+    for (i = 0; i < dwOneByteTestFileSize; i++)
     {
-        if(fwrite(pbBuffer, 1, 1, pstFile) != 1)
+        if (fwrite(pbBuffer, 1, 1, pstFile) != 1)
         {
             kPrintf("Write Fail\n");
             fclose(pstFile);
@@ -1797,9 +1801,9 @@ static void kTestPerformance(const char* pcParameterBuffer)
 
     qwLastTickCount = kGetTickCount();
 
-    for(i = 0; i < dwOneByteTestFileSize; i++)
+    for (i = 0; i < dwOneByteTestFileSize; i++)
     {
-        if(fread(pbBuffer, 1, 1, pstFile) != 1)
+        if (fread(pbBuffer, 1, 1, pstFile) != 1)
         {
             kPrintf("Read Fail\n");
             fclose(pstFile);
@@ -1815,7 +1819,7 @@ static void kTestPerformance(const char* pcParameterBuffer)
     fclose(pstFile);
 }
 
-static void kDownloadFile(const char* pcParameterBuffer)
+static void kDownloadFile(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
 
@@ -1831,14 +1835,14 @@ static void kDownloadFile(const char* pcParameterBuffer)
 
     BYTE vbDataBuffer[SERIAL_FIFOMAXSIZE];
 
-    FILE* fp;
+    FILE *fp;
 
     kInitializeParameter(&(stList), pcParameterBuffer);
 
     iFileNameLength = kGetNextParameter(&stList, vcFileName);
     vcFileName[iFileNameLength] = '\0';
 
-    if(iFileNameLength > (FILESYSTEM_MAXFILENAMELENGTH - 1) || iFileNameLength == 0)
+    if (iFileNameLength > (FILESYSTEM_MAXFILENAMELENGTH - 1) || iFileNameLength == 0)
     {
         kPrintf("Too Long or Too Short File Name\n");
         kPrintf("usage) download [filename]\n");
@@ -1852,16 +1856,16 @@ static void kDownloadFile(const char* pcParameterBuffer)
     dwReceivedSize = 0;
     qwLastReceivedTickCount = kGetTickCount();
 
-    while(dwReceivedSize < 4)
+    while (dwReceivedSize < 4)
     {
-        dwTempSize = kReceiveSerialData(((BYTE*)&dwDataLength) + dwReceivedSize, 4 - dwReceivedSize);
+        dwTempSize = kReceiveSerialData(((BYTE *)&dwDataLength) + dwReceivedSize, 4 - dwReceivedSize);
         dwReceivedSize += dwTempSize;
 
-        if(dwTempSize == 0)
+        if (dwTempSize == 0)
         {
             kSleep(0);
 
-            if((kGetTickCount() - qwLastReceivedTickCount) > 30000)
+            if ((kGetTickCount() - qwLastReceivedTickCount) > 30000)
             {
                 kPrintf("Time Out Occur~!!\n");
 
@@ -1870,7 +1874,6 @@ static void kDownloadFile(const char* pcParameterBuffer)
         }
         else
             qwLastReceivedTickCount = kGetTickCount();
-        
     }
 
     kPrintf("[%d] Byte\n", dwDataLength);
@@ -1878,8 +1881,8 @@ static void kDownloadFile(const char* pcParameterBuffer)
     kSendSerialData("A", 1); // ack
 
     fp = fopen(vcFileName, "w");
-    
-    if(fp == NULL)
+
+    if (fp == NULL)
     {
         kPrintf("%s file open fail\n", vcFileName);
 
@@ -1890,20 +1893,20 @@ static void kDownloadFile(const char* pcParameterBuffer)
     dwReceivedSize = 0;
     qwLastReceivedTickCount = kGetTickCount();
 
-    while(dwReceivedSize < dwDataLength)
+    while (dwReceivedSize < dwDataLength)
     {
         dwTempSize = kReceiveSerialData(vbDataBuffer, SERIAL_FIFOMAXSIZE);
         dwReceivedSize += dwTempSize;
 
-        if(dwTempSize != 0)
+        if (dwTempSize != 0)
         {
-            if(((dwReceivedSize % SERIAL_FIFOMAXSIZE) == 0) || ((dwReceivedSize == dwDataLength)))
+            if (((dwReceivedSize % SERIAL_FIFOMAXSIZE) == 0) || ((dwReceivedSize == dwDataLength)))
             {
                 kSendSerialData("A", 1);
                 kPrintf("#");
             }
 
-            if(fwrite(vbDataBuffer, 1, dwTempSize, fp) != dwTempSize)
+            if (fwrite(vbDataBuffer, 1, dwTempSize, fp) != dwTempSize)
             {
                 kPrintf("File Write Error Occur!\n");
                 break;
@@ -1915,7 +1918,7 @@ static void kDownloadFile(const char* pcParameterBuffer)
         {
             kSleep(0);
 
-            if((kGetTickCount() - qwLastReceivedTickCount) > 10000)
+            if ((kGetTickCount() - qwLastReceivedTickCount) > 10000)
             {
                 kPrintf("Time Out Occur!\n");
                 break;
@@ -1923,18 +1926,78 @@ static void kDownloadFile(const char* pcParameterBuffer)
         }
     }
 
-    if(dwReceivedSize != dwDataLength)
+    if (dwReceivedSize != dwDataLength)
         kPrintf("\nError Occur. Total Size [%d] Received Size [%d]\n", dwReceivedSize, dwDataLength);
     else
         kPrintf("\nReceive Complete. Total Size [%d] Byte\n", dwReceivedSize);
-    
+
     fclose(fp);
 
-    kFlushFileSystemCache();
-
+    kFlushFileSystemCache(); 
 }
 
-static void kShowMPConfigurationTable(const char* pcParameterBuffer)
+static void kShowMPConfigurationTable(const char *pcParameterBuffer)
 {
     kPrintMPConfigurationTable();
+}
+
+static void kStartApplicationProcessor(const char *pcParameterBuffer)
+{
+    if (kStartUpApplicationProcessor() == FALSE)
+    {
+        kPrintf("Application Processor Start Fail..\n");
+        return;
+    }
+
+    kPrintf("Application Processor Start Success!\n");
+
+    kPrintf("Bootstrap Processor[APIC ID: %d] Start Application Processor\n", kGetAPICID());
+}
+
+static void kStartSymmetricIOMode(const char *pcParameterBuffer)
+{
+    MPCONFIGURATIONMANAGER *pstMPManager;
+    BOOL bInterruptFlag;
+
+    if (kAnalysisMPConfigurationTable() == FALSE)
+    {
+        kPrintf("Analyze MP Configuration Table Fail..\n");
+        return;
+    }
+
+    pstMPManager = kGetMPConfigurationManager();
+    if (pstMPManager->bUsePICMode == TRUE)
+    {
+        kOutPortByte(0x22, 0x70);
+        kOutPortByte(0x23, 0x01);
+    }
+
+    kPrintf("Mask All PIC Controller Interrupt\n");
+    kMaskPICInterrupt(0xFFFF);
+
+    kPrintf("Enable Global Local APIC\n");
+    kEnableGlobalLocalAPIC();
+
+    kPrintf("Enable Software Local APIC\n");
+    kEnableSoftwareLocalAPIC();
+
+    kPrintf("Disable CPU Interrupt Flag\n");
+    bInterruptFlag = kSetInterruptFlag(FALSE);
+
+    kSetTaskPriority(0);
+
+    kInitializeLocalVectorTable();
+
+    kPrintf("Initialize IO Redirection Table\n");
+    kInitializeIORedirectionTable();
+
+    kPrintf("Restore CPU Interrupt Flag\n");
+    kSetInterruptFlag(bInterruptFlag);
+
+    kPrintf("Change Symmetric I/O Mode Complete!!\n");
+}
+
+static void kShowIRQINTINMappingTable(const char *pcParameterBuffer)
+{
+    kPrintIRQToINTINMap();
 }

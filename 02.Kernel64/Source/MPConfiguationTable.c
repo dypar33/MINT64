@@ -2,7 +2,7 @@
 #include "Console.h"
 #include "Utility.h"
 
-static MPCONFIGRUATIONMANAGER gs_stMPConfigurationManager = {
+static MPCONFIGURATIONMANAGER gs_stMPConfigurationManager = {
     0,
 };
 
@@ -12,8 +12,8 @@ BOOL kFindMPFloatingPointerAddress(QWORD *pstAddress)
     QWORD qwEBDAAddress;
     QWORD qwSystemBaseMemory;
 
-    kPrintf("Extended BIOS Data Area = [0x%X] \n", (DWORD)(*(WORD *)0x040E) * 16);
-    kPrintf("System Base Address = [0x%X]\n", (DWORD)(*(WORD *)0x0413) * 1024);
+    //kPrintf("Extended BIOS Data Area = [0x%X] \n", (DWORD)(*(WORD *)0x040E) * 16);
+    //kPrintf("System Base Address = [0x%X]\n", (DWORD)(*(WORD *)0x0413) * 1024);
 
     qwEBDAAddress = *(WORD *)(0x040E);
     qwEBDAAddress *= 16;
@@ -37,7 +37,7 @@ BOOL kFindMPFloatingPointerAddress(QWORD *pstAddress)
     {
         if (kMemCmp(pcMPFloatingPointer, "_MP_", 4) == 0)
         {
-            kPrintf("MP Floating Pointer Is In System Base Memory, [0x%X] Address\n", (QWORD)pcMPFloatingPointer);
+            //kPrintf("MP Floating Pointer Is In System Base Memory, [0x%X] Address\n", (QWORD)pcMPFloatingPointer);
             *pstAddress = (QWORD)pcMPFloatingPointer;
             return TRUE;
         }
@@ -47,7 +47,7 @@ BOOL kFindMPFloatingPointerAddress(QWORD *pstAddress)
     {
         if (kMemCmp(pcMPFloatingPointer, "_MP_", 4) == 0)
         {
-            kPrintf("MP Floating Pointer Is In ROM, [0x%X] Address\n", pcMPFloatingPointer);
+            //kPrintf("MP Floating Pointer Is In ROM, [0x%X] Address\n", pcMPFloatingPointer);
             *pstAddress = (QWORD)pcMPFloatingPointer;
             return TRUE;
         }
@@ -62,12 +62,12 @@ BOOL kAnalysisMPConfigurationTable(void)
     MPFLOATINGPOINTER *pstMPFloatingPointer;
     MPCONFIGURATIONTABLEHEADER *pstMPConfigurationHeader;
     BYTE bEntryType;
-    WORD i;
+    
     QWORD qwEntryAddress;
     PROCESSORENTRY *pstProcessorEntry;
     BUSENTRY *pstBusEntry;
 
-    kMemSet(&gs_stMPConfigurationManager, 0, sizeof(MPCONFIGRUATIONMANAGER));
+    kMemSet(&gs_stMPConfigurationManager, 0, sizeof(MPCONFIGURATIONMANAGER));
     gs_stMPConfigurationManager.bISABusID = 0xFF;
 
     if (kFindMPFloatingPointerAddress(&qwMPFloatingPointerAddress) == FALSE)
@@ -92,7 +92,7 @@ BOOL kAnalysisMPConfigurationTable(void)
 
     qwEntryAddress = gs_stMPConfigurationManager.qwBaseEntryStartAddress;
 
-    for (i = 0; i < pstMPConfigurationHeader->wEntryCount; i++)
+    for (WORD i = 0; i < pstMPConfigurationHeader->wEntryCount; i++)
     {
         bEntryType = *(BYTE *)qwEntryAddress;
         switch (bEntryType)
@@ -130,14 +130,14 @@ BOOL kAnalysisMPConfigurationTable(void)
     return TRUE;
 }
 
-MPCONFIGRUATIONMANAGER *kGetMPConfigurationManager(void)
+MPCONFIGURATIONMANAGER *kGetMPConfigurationManager(void)
 {
     return &gs_stMPConfigurationManager;
 }
 
 void kPrintMPConfigurationTable(void)
 {
-    MPCONFIGRUATIONMANAGER *pstMPConfigurationManager;
+    MPCONFIGURATIONMANAGER* pstMPConfigurationManager;
     MPFLOATINGPOINTER *pstMPFloatingPointer;
     MPCONFIGURATIONTABLEHEADER *pstMPTableHeader;
     PROCESSORENTRY *pstProcessorEntry;
@@ -149,7 +149,6 @@ void kPrintMPConfigurationTable(void)
     QWORD qwBaseEntryAddress;
     QWORD qwMPFloatingPointerAddress;
 
-    WORD i;
     BYTE bEntryType;
 
     char vcStringBuffer[20];
@@ -249,7 +248,7 @@ void kPrintMPConfigurationTable(void)
     kPrintf("\n============= Base MP Configuration Table Entry =============\n");
     qwBaseEntryAddress = pstMPFloatingPointer->dwMPConfigurationTableAddress + sizeof(MPCONFIGURATIONTABLEHEADER);
 
-    for (i = 0; i < pstMPTableHeader->wEntryCount; i++)
+    for (WORD i = 0; i < pstMPTableHeader->wEntryCount; i++)
     {
         bEntryType = *(BYTE *)qwBaseEntryAddress;
         switch (bEntryType)
@@ -373,8 +372,81 @@ void kPrintMPConfigurationTable(void)
 int kGetProcessorCount(void)
 {
     if (gs_stMPConfigurationManager.iProcessorCount == 0)
-    {
         return 1;
-    }
+
     return gs_stMPConfigurationManager.iProcessorCount;
+}
+
+IOAPICENTRY *kFindIOAPICEntryForISA(void)
+{
+    MPCONFIGURATIONMANAGER* pstMPManager;
+    MPCONFIGURATIONTABLEHEADER *pstMPHeader;
+    IOINTERRUPTASSIGNMENTENTRY *pstIOAssignmentEntry;
+    IOAPICENTRY *pstIOAPICEntry;
+    QWORD qwEntryAddress;
+    BYTE bEntryType;
+    BOOL bFind = FALSE;
+
+    pstMPHeader = gs_stMPConfigurationManager.pstMPConfigurationTableHeader;
+    qwEntryAddress = gs_stMPConfigurationManager.qwBaseEntryStartAddress;
+
+    for (int i = 0; (i < pstMPHeader->wEntryCount) && (bFind == FALSE); i++)
+    {
+        bEntryType = *(BYTE *)qwEntryAddress;
+        switch (bEntryType)
+        {
+
+        case MP_ENTRYTYPE_PROCESSOR:
+            qwEntryAddress += sizeof(PROCESSORENTRY);
+            break;
+
+        case MP_ENTRYTYPE_BUS:
+        case MP_ENTRYTYPE_IOAPIC:
+        case MP_ENTRYTYPE_LOCALINTERRUPTASSIGNMENT:
+            qwEntryAddress += 8;
+            break;
+
+        case MP_ENTRYTYPE_IOINTERRUPTASSIGNMENT:
+            pstIOAssignmentEntry = (IOINTERRUPTASSIGNMENTENTRY *)qwEntryAddress;
+
+            if (pstIOAssignmentEntry->bSourceBUSID == gs_stMPConfigurationManager.bISABusID)
+                bFind = TRUE;
+
+            qwEntryAddress += sizeof(IOINTERRUPTASSIGNMENTENTRY);
+            break;
+        }
+    }
+
+    if (bFind == FALSE)
+        return NULL;
+
+    qwEntryAddress = gs_stMPConfigurationManager.qwBaseEntryStartAddress;
+
+    for (int i = 0; i < pstMPHeader->wEntryCount; i++)
+    {
+        bEntryType = *(BYTE *)qwEntryAddress;
+        switch (bEntryType)
+        {
+        case MP_ENTRYTYPE_PROCESSOR:
+            qwEntryAddress += sizeof(PROCESSORENTRY);
+            break;
+
+        case MP_ENTRYTYPE_BUS:
+        case MP_ENTRYTYPE_IOINTERRUPTASSIGNMENT:
+        case MP_ENTRYTYPE_LOCALINTERRUPTASSIGNMENT:
+            qwEntryAddress += 8;
+            break;
+
+        case MP_ENTRYTYPE_IOAPIC:
+            pstIOAPICEntry = (IOAPICENTRY *)qwEntryAddress;
+
+            if (pstIOAPICEntry->bIOAPICID == pstIOAssignmentEntry->bDestinationIOAPICID)
+                return pstIOAPICEntry;
+
+            qwEntryAddress += sizeof(IOINTERRUPTASSIGNMENTENTRY);
+            break;
+        }
+    }
+
+    return NULL;
 }

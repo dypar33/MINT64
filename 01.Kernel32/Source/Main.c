@@ -2,6 +2,8 @@
 #include "Page.h"
 #include "ModeSwitch.h"
 
+#define BOOTSTRAPPROCESSOR_FLAGADDRESS 0x7c09
+
 void k_print_string(int ix, int iy, const char* p_string);
 BOOL k_initializing_k64_area(void);
 BOOL k_has_enough_memory(void);
@@ -11,6 +13,13 @@ void Main(void)
 {
     DWORD dw_eax, dw_ebx, dw_ecx, dw_edx;
     char vc_vendor_str[13] = {0,};
+
+    if(*((BYTE*) BOOTSTRAPPROCESSOR_FLAGADDRESS) == 0)
+    {
+        kSwitchAndExecute64bitKernel();
+
+        while(1);
+    }
 
     k_print_string(0, 3, "C Language Kernel Started!");
 

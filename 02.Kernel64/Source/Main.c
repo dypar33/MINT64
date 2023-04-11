@@ -10,12 +10,19 @@
 #include "HardDisk.h"
 #include "FileSystem.h"
 #include "SerialPort.h"
+#include "MultiProcessor.h"
 
-void kPrintString(int ix, int iy, const char* pc_string);
+void MainForApplicationProcessor(void);
+void kPrintString(int ix, int iy, const char *pc_string);
 
 void Main(void)
 {
     int iCursorx, iCursorY;
+
+    if (*((BYTE *)BOOTSTRAPPROCESSOR_FLAGADDRESS) == 0)
+        MainForApplicationProcessor();
+
+    *((BYTE *)BOOTSTRAPPROCESSOR_FLAGADDRESS) = 0;
 
     kInitializeConsole(0, 10);
     kPrintf("Switch To IA-32e Mode Success!\n");
@@ -45,11 +52,11 @@ void Main(void)
     kSetCursor(45, iCursorY++);
     kPrintf("Pass], Size = %d MB\n", kGetTotalRAMSize());
 
-    kPrintf("TCB Pool And Scheduler Initialize...........[Pass]\n" );
+    kPrintf("TCB Pool And Scheduler Initialize...........[Pass]\n");
     iCursorY++;
     kInitializeScheduler();
 
-    kPrintf("Dynamic Memory Initialize...................[Pass]\n" );
+    kPrintf("Dynamic Memory Initialize...................[Pass]\n");
     iCursorY++;
     kInitializeDynamicMemory();
 
@@ -57,7 +64,7 @@ void Main(void)
 
     kPrintf("Keyboard Activate And Queue Initialize......[    ]");
 
-    if(kInitializeKeyboard() == TRUE)
+    if (kInitializeKeyboard() == TRUE)
     {
         kSetCursor(45, iCursorY++);
         kPrintf("Pass\n");
@@ -67,7 +74,8 @@ void Main(void)
     {
         kSetCursor(45, iCursorY++);
         kPrintf("Pass\n");
-        while(1);
+        while (1)
+            ;
     }
 
     kPrintf("PIC Controller And Interrupt Initialize.....[    ]");
@@ -75,10 +83,10 @@ void Main(void)
     kMaskPICInterrupt(0);
     kEnableInterrupt();
     kSetCursor(45, iCursorY++);
-    kPrintf("Pass\n"); 
+    kPrintf("Pass\n");
 
     kPrintf("File System Initialize......................[    ]");
-    if(kInitializeFileSystem() == TRUE)
+    if (kInitializeFileSystem() == TRUE)
     {
         kSetCursor(45, iCursorY++);
         kPrintf("Pass\n");
@@ -94,13 +102,13 @@ void Main(void)
 
     kInitializeSerialPort();
 
-    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, (QWORD) kIdleTask);
+    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, (QWORD)kIdleTask);
     kStartConsoleShell();
 }
 
-void kPrintString(int ix, int iy, const char* pc_string)
+void kPrintString(int ix, int iy, const char *pc_string)
 {
-    CHARACTER* pst_screen = (CHARACTER*) 0xB8000;
+    CHARACTER *pst_screen = (CHARACTER *)0xB8000;
 
     int i;
 
@@ -110,5 +118,26 @@ void kPrintString(int ix, int iy, const char* pc_string)
     {
         pst_screen[i].b_charactor = pc_string[i];
     }
+}
+
+void MainForApplicationProcessor()
+{
+    QWORD qwTickCount;
     
+    kLoadGDTR(GDTR_STARTADDRESS);
+    
+    kLoadTR(GDT_TSSSEGMENT + (kGetAPICID() * sizeof(GDTENTRY16)));
+    
+    kLoadIDTR(IDTR_STARTADDRESS);
+    
+    qwTickCount = kGetTickCount();
+    while (1)
+    {
+        if (kGetTickCount() - qwTickCount > 1000)
+        {
+            qwTickCount = kGetTickCount();
+
+            kPrintf("Application Processor[APIC ID: %d] Is Activated\n", kGetAPICID());
+        }
+    }
 }

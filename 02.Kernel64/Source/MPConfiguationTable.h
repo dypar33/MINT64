@@ -122,12 +122,14 @@ typedef struct kMPConfigurationManagerStruct
     int iProcessorCount;
     BOOL bUsePICMode;
     BYTE bISABusID;
-} MPCONFIGRUATIONMANAGER;
+} MPCONFIGURATIONMANAGER;
 
 BOOL kFindMPFloatingPointerAddress(QWORD* pstAddress);
 BOOL kAnalysisMPConfigurationTable(void);
-MPCONFIGRUATIONMANAGER* kGetMPConfigurationManager(void);
+MPCONFIGURATIONMANAGER* kGetMPConfigurationManager(void);
 void kPrintMPConfigurationTable(void);
 int kGetProcessorCount(void);
+
+IOAPICENTRY* kFindIOAPICEntryForISA(void);
 
 #endif

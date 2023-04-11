@@ -1,6 +1,7 @@
 #include "Descriptor.h"
 #include "Utility.h"
 #include "ISR.h"
+#include "MultiProcessor.h"
 
 void kInitializeGDTTableAndTSS(void)
 {
@@ -27,6 +28,12 @@ void kInitializeGDTTableAndTSS(void)
     // TSS
     kSetGDTEntry16((GDTENTRY16*)&(pstEntry[3]), (QWORD) pstTSS,
         sizeof(TSSSEGMENT) - 1, GDT_FLAGS_UPPER_TSS, GDT_FLAGS_LOWER_TSS, GDT_TYPE_TSS);
+
+    for (int i = 0; i < MAXPROCESSORCOUNT; i++)
+    {
+        kSetGDTEntry16((GDTENTRY16*) &(pstEntry[GDT_MAXENTRY8COUNT + (i * 2)]), (QWORD) pstTSS + (i * sizeof(TSSSEGMENT)), sizeof(TSSSEGMENT) - 1, GDT_FLAGS_UPPER_TSS, GDT_FLAGS_LOWER_TSS, GDT_TYPE_TSS);
+    }
+    
 
     kInitializeTSSSegment(pstTSS);
 }
@@ -57,10 +64,14 @@ void kSetGDTEntry16(GDTENTRY16* pstEntry, QWORD qwBaseAddress, DWORD dwLimit,
 
 void kInitializeTSSSegment(TSSSEGMENT* pstTSS)
 {
-    kMemSet(pstTSS, 0, sizeof(TSSSEGMENT));
-    pstTSS->qwIST[0] = IST_STARTADDRESS + IST_SIZE;
-    
-    pstTSS->wIOMapBaseAddress = 0xFFFF;
+    for (int i = 0; i < MAXPROCESSORCOUNT; i++)
+    {
+        kMemSet(pstTSS, 0, sizeof(TSSSEGMENT));
+        pstTSS->qwIST[0] = IST_STARTADDRESS + IST_SIZE - (IST_SIZE / MAXPROCESSORCOUNT * i);
+        
+        pstTSS->wIOMapBaseAddress = 0xFFFF;
+        pstTSS++;
+    }
 }
     
 void kInitializeIDTTables(void)

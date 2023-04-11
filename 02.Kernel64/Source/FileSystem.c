@@ -15,7 +15,7 @@ fWriteHDDSector gs_pfWriteHDDSector = NULL;
 
 BOOL kInitializeFileSystem(void)
 {
-    BOOL bCacheEnable = FALSE;
+    BOOL bCacheEnable = TRUE;
 
     kMemSet(&gs_stFileSystemManager, 0, sizeof(gs_stFileSystemManager));
     kInitializeMutex(&(gs_stFileSystemManager.stMutex));
@@ -145,7 +145,7 @@ BOOL kFormat(void)
         return FALSE;
     }
 
-    kMemSet(gs_vbTempBuffer, 0, 512);
+    kMemSet(gs_vbTempBuffer, 0, 512); 
     for (int i = 0; i < (dwClusterLinkSectorCount + FILESYSTEM_SECTORSPERCLUSTER); i++)
     {
         if(i == 0)
@@ -154,7 +154,7 @@ BOOL kFormat(void)
             ((DWORD*) (gs_vbTempBuffer))[0] = kFindFreeCluster;
 
         if(gs_pfWriteHDDSector(TRUE, TRUE, i + 1, 1, gs_vbTempBuffer) == FALSE)
-        {
+        {   
             kUnlock(&(gs_stFileSystemManager.stMutex));
 
             return FALSE;
@@ -171,7 +171,7 @@ BOOL kFormat(void)
 
     return TRUE;
 }
-
+    
 static BOOL kReadClusterLinkTable(DWORD dwOffset, BYTE* pbBuffer)
 {
     if(gs_stFileSystemManager.bCacheEnable == FALSE)
