@@ -65,6 +65,8 @@ void kInitializeDynamicMemory()
     gs_stDynamicMemory.qwStartAddress = DYNAMICMEMORY_START_ADDRESS + iMetaBlockCount * DYNAMICMEMORY_MIN_SIZE;
     gs_stDynamicMemory.qwEndAddress = kCalculateDynamicMemorySize() + DYNAMICMEMORY_START_ADDRESS;
     gs_stDynamicMemory.qwUsedSize = 0;
+
+    kInitializeSpinLock(&(gs_stDynamicMemory.stSpinLock));
 }
 
 static QWORD kCalculateDynamicMemorySize()
@@ -150,14 +152,12 @@ static int kAllocationBuddyBlock(QWORD qwAlignedSize){
     int iBlockListIndex, iFreeOffset;
     int i;
 
-    BOOL bPreviousInterrruptFlag;
-
     iBlockListIndex = kGetBlockListIndexOfMatchSize(qwAlignedSize);
 
     if(iBlockListIndex == -1)
         return -1;
 
-    bPreviousInterrruptFlag = kLockForSystemData();
+    kLockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
 
     for(i = iBlockListIndex; i < gs_stDynamicMemory.iMaxLevelCount; i++)
     {
@@ -168,7 +168,7 @@ static int kAllocationBuddyBlock(QWORD qwAlignedSize){
 
     if(iFreeOffset == -1)
     {
-        kUnlockForSystemData(bPreviousInterrruptFlag);
+        kUnlockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
         return -1;
     }
 
@@ -184,7 +184,7 @@ static int kAllocationBuddyBlock(QWORD qwAlignedSize){
         }
     }
 
-    kUnlockForSystemData(bPreviousInterrruptFlag);
+    kUnlockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
 
     return iFreeOffset;
 }
@@ -292,9 +292,8 @@ static BOOL kFreeBuddyBlock(int iBlockListIndex, int iBlockOffset)
 {
     int iBuddyBlockOffset;
     BOOL bFlag;
-    BOOL bPreviousInterruptFlag;
 
-    bPreviousInterruptFlag = kLockForSystemData();
+    kLockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
 
     for(int i = iBlockListIndex; i < gs_stDynamicMemory.iMaxLevelCount; i++)
     {
@@ -316,7 +315,7 @@ static BOOL kFreeBuddyBlock(int iBlockListIndex, int iBlockOffset)
         iBlockOffset /= 2;
     }
 
-    kUnlockForSystemData(bPreviousInterruptFlag);
+    kUnlockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
 
     return TRUE;
 }

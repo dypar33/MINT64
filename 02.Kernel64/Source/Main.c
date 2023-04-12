@@ -102,7 +102,8 @@ void Main(void)
 
     kInitializeSerialPort();
 
-    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, (QWORD)kIdleTask);
+    kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, (QWORD)kIdleTask, kGetAPICID());
+
     kStartConsoleShell();
 }
 
@@ -123,21 +124,24 @@ void kPrintString(int ix, int iy, const char *pc_string)
 void MainForApplicationProcessor()
 {
     QWORD qwTickCount;
-    
-    kLoadGDTR(GDTR_STARTADDRESS);
-    
-    kLoadTR(GDT_TSSSEGMENT + (kGetAPICID() * sizeof(GDTENTRY16)));
-    
-    kLoadIDTR(IDTR_STARTADDRESS);
-    
-    qwTickCount = kGetTickCount();
-    while (1)
-    {
-        if (kGetTickCount() - qwTickCount > 1000)
-        {
-            qwTickCount = kGetTickCount();
 
-            kPrintf("Application Processor[APIC ID: %d] Is Activated\n", kGetAPICID());
-        }
-    }
+    kLoadGDTR(GDTR_STARTADDRESS);
+
+    kLoadTR(GDT_TSSSEGMENT + (kGetAPICID() * sizeof(GDTENTRY16)));
+
+    kLoadIDTR(IDTR_STARTADDRESS);
+
+    kInitializeScheduler();
+
+    kEnableSoftwareLocalAPIC();
+
+    kSetTaskPriority(0);
+
+    kInitializeLocalVectorTable();
+
+    kEnableInterrupt();
+
+    kPrintf("Application Processor[APIC ID: %d] Is Activated\n", kGetAPICID());
+
+    kIdleTask();
 }
