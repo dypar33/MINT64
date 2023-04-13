@@ -8,6 +8,7 @@ jmp 0x07C0:START
 TOTALSECTORCOUNT: dw 0x2
 KERNEL32_SECTOR_COUNT: dw 0x2
 BOOTSTRAPPROCESSOR: db 0x01
+STARTGRAPHICMODE: db 0x01
 
 START:
     ; 세그먼트 세팅
@@ -100,16 +101,50 @@ READ_DISK_DATA:
     add byte [TRACK_NUMBER], 0x01
     jmp READ_DISK_DATA
 
-
-
-
 READ_DISK_DATA_END:
     push LOADING_COMPLETE_M
     push 1
     push 40
     call PRINT_M
 
+    add sp, 6
+
+    jmp SETTING_VBE
+
+SETTING_VBE:
+    ; VBE
+    mov ax, 0x4F01
+    mov cx, 0x117
+    mov bx, 0x07E0
+    mov es, bx
+    mov di, 0x00
+    int 0x10
+    cmp ax, 0x004F
+    jne VBEEROR
+
+    cmp byte [STARTGRAPHICMODE], 0x00
+    je JUMPTOPROTECTEDMODE
+
+    mov ax, 0x4F02
+    mov bx, 0x4117
+
+    int 0x10
+    cmp ax, 0x004F
+    jne VBEEROR
+
+    jmp JUMPTOPROTECTEDMODE
+
+VBEEROR:
+    push CHANGEGRAPHICMODEFAIL
+    push 2
+    push 0
+    call PRINT_M
+    add sp, 6
+    jmp $
+
+JUMPTOPROTECTEDMODE:
     jmp 0x1000:0x0000 ; 로딩한 os 이미지 실행
+
 
 
 
@@ -185,6 +220,7 @@ M1: db 'MINT64 OS Boot Loader Start', 0
 DISK_ERR_M: db 'Disk Error..', 0
 IMAGE_LODING_M: db 'OS Img Loading...', 0
 LOADING_COMPLETE_M: db 'Done!', 0
+CHANGEGRAPHICMODEFAIL: db 'Change Graphic Mode Fail~!!', 0
 
 SECTOR_NUMBER: db 0x02
 HEAD_NUMBER: db 0x00
