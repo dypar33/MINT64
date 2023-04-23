@@ -11,6 +11,31 @@ void kMemSet(void* pvDestinationm, BYTE bData, int iSize)
         ((char *) pvDestinationm)[i] = bData;
 }
 
+void kMemSetWord(void* pvDestination, WORD wData, int iWordSize)
+{
+    QWORD qwData;
+
+    int i, iRemainWordStartOffset;
+
+    qwData = 0;
+    for(i = 0; i < 4; i++)
+    {
+        qwData = (qwData << 16) | wData;
+    }
+
+    for(i = 0; i < (iWordSize / 4); i++)
+    {
+        ((QWORD*) pvDestination)[i] = qwData;
+    }
+
+    iRemainWordStartOffset = i * 4;
+    for (i = 0; i < (iWordSize % 4); i++)
+    {
+        ((WORD*) pvDestination)[iRemainWordStartOffset++] = wData;
+    }
+    
+}
+
 int kMemCpy(void* pvDestination, const void* pvSource, int iSize)
 {
     for(int i = 0; i < iSize; i++)

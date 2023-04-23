@@ -8,6 +8,7 @@
 #define MAX(x,y) (((x) > (y)) ? (x) : (y))
 
 void kMemSet(void* pvDestination, BYTE bData, int iSize);
+void kMemSetWord(void* pvDestination, WORD wData, int iWordSize);
 int kMemCpy(void* pvDestination, const void* pvSource, int iSize);
 int kMemCmp(const void* pvDestination, const void* pvSource, int iSize);
 
