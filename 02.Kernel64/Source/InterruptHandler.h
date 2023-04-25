@@ -15,12 +15,12 @@ typedef struct kInterruptManagerStruct
     BOOL bSymmetricIOMode;
 } INTERRUPTMANAGER;
 
-void kSetSymmetricIOMode( BOOL bSymmetricIOMode );
-void kSetInterruptLoadBalancing( BOOL bUseLoadBalancing );
-void kIncreaseInterruptCount( int iIRQ );
-void kSendEOI( int iIRQ );
-INTERRUPTMANAGER* kGetInterruptManager( void );
-void kProcessLoadBalancing( int iIRQ );
+void kSetSymmetricIOMode(BOOL bSymmetricIOMode);
+void kSetInterruptLoadBalancing(BOOL bUseLoadBalancing);
+void kIncreaseInterruptCount(int iIRQ);
+void kSendEOI(int iIRQ);
+INTERRUPTMANAGER *kGetInterruptManager(void);
+void kProcessLoadBalancing(int iIRQ);
 
 void kCommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode);
 void kCommonInterruptHandler(int iVectorNumber);
@@ -28,5 +28,6 @@ void kKeyboardHandler(int iVectorNumber);
 void kTimerHandler(int iVectorNumber);
 void kDeviceNotAvailableHandler(int iVectorNumber);
 void kHDDHandler(int iVectorNumber);
+void kMouseHandler(int iVectorNumber);
 
 #endif

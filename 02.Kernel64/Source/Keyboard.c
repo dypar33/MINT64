@@ -3,6 +3,7 @@
 #include "Keyboard.h"
 #include "Queue.h"
 #include "Synchronization.h"
+#include "Mouse.h"
 
 BOOL kIsOutputBufferFull(void)
 {
@@ -26,6 +27,7 @@ BOOL kWaitForACKAndPutOtherScanCode(void)
 {
     BYTE bData;
     BOOL bResult = FALSE;
+    BOOL bMouseData;
 
     for (int i = 0; i < 100; i++)
     {
@@ -35,6 +37,11 @@ BOOL kWaitForACKAndPutOtherScanCode(void)
                 break;
         }
 
+        if(kIsMouseDataInOutputBuffer() == TRUE)
+            bMouseData = TRUE;
+        else    
+            bMouseData = FALSE;
+
         bData = kInPortByte(0x60);
         if(bData == 0xFA)
         {
@@ -42,7 +49,12 @@ BOOL kWaitForACKAndPutOtherScanCode(void)
             break;
         }
         else
-            kConvertScanCodeAndPutQueue(bData);
+        {
+            if(bMouseData == FALSE)   
+                kConvertScanCodeAndPutQueue(bData);
+            else
+                kAccumulateMouseDataAndPutQueue(bData);
+        }
         
     }
 
