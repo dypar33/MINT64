@@ -1,6 +1,7 @@
 #include "Utility.h"
 #include "AssemblyUtility.h"
 #include <stdarg.h>
+#include "VBE.h"
 
 volatile QWORD g_qwTickCount = 0;
 
@@ -388,4 +389,12 @@ void kSleep(QWORD qwMillisecond)
 
     while((g_qwTickCount - qwLastTickCount) <= qwMillisecond)
         kSchedule();
+}
+
+BOOL kIsGraphicMode(void)
+{
+    if(*(BYTE*) VBE_STARTGRAPHICMODEFLAGADDRESS == 0)
+        return FALSE;
+    
+    return TRUE;
 }

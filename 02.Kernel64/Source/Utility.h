@@ -33,4 +33,6 @@ QWORD kGetTickCount(void);
 
 extern volatile QWORD g_qwTickCount;
 
+BOOL kIsGraphicMode(void);
+
 #endif

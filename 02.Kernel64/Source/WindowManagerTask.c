@@ -4,6 +4,7 @@
 #include "VBE.h"
 #include "Mouse.h"
 #include "Task.h"
+#include "GUITask.h"
 
 void kStartWindowManager(void)
 {
@@ -113,11 +114,13 @@ BOOL kProcessMouseData(void)
             kSetMouseEvent(qwWindowIDUnderMouse, EVENT_MOUSE_RBUTTONDOWN, iMouseX, iMouseY, bButtonStatus, &stEvent);
             kSendEventToWindow(qwWindowIDUnderMouse, &stEvent);
 
-            kSPrintf(vcTempTitle, "Window %d", iWindowCount++);
-            qwWindowID = kCreateWindow(iMouseX - 10, iMouseY - WINDOW_TITLEBAR_HEIGHT / 2, 400, 200, WINDOW_FLAGS_DRAWFRAME | WINDOW_FLAGS_DRAWTITLE, vcTempTitle);
+            kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, NULL, NULL, (QWORD)kHelloWorldGUITask, TASK_LOADBALANCINGID);
 
-            kDrawText(qwWindowID, 10, WINDOW_TITLEBAR_HEIGHT + 10, RGB(0, 0, 0), WINDOW_COLOR_BACKGROUND, "Test!", 5);
-            kShowWindow(qwWindowID, TRUE);
+            // kSPrintf(vcTempTitle, "Window %d", iWindowCount++);
+            // qwWindowID = kCreateWindow(iMouseX - 10, iMouseY - WINDOW_TITLEBAR_HEIGHT / 2, 400, 200, WINDOW_FLAGS_DRAWFRAME | WINDOW_FLAGS_DRAWTITLE, vcTempTitle);
+
+            // kDrawText(qwWindowID, 10, WINDOW_TITLEBAR_HEIGHT + 10, RGB(0, 0, 0), WINDOW_COLOR_BACKGROUND, "Test!", 5);
+            // kShowWindow(qwWindowID, TRUE);
         }
         else
         {
