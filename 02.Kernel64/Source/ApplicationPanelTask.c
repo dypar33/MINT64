@@ -6,6 +6,7 @@
 APPLICATIONENTRY gs_vstApplicationTable[] = {
     {"Base GUI Task", kBaseGUITask},
     {"Hello World GUI Task", kHelloWorldGUITask},
+    {"System Monitor Task", kSystemMonitorTask},
 };
 
 APPLICATIONPANELDATA gs_stApplicationPanelData;
@@ -51,7 +52,7 @@ static BOOL kCreateApplicationPanelWindow(void)
     kDrawRect(qwWindowID, 3, 3, pstWindowManager->stScreenArea.iX2 - 3, APPLICATIONPANEL_HEIGHT - 4, APPLICATIONPANEL_COLOR_BACKGROUND, TRUE);
 
     kSetRectangleData(5, 5, 120, 25, &(gs_stApplicationPanelData.stButtonArea));
-    kDrawButton(qwWindowID, &(gs_stApplicationPanelData.stButtonArea), APPLICATIONPANEL_COLOR_ACTIVE, "Application", RGB(255, 255, 255));
+    kDrawButton(qwWindowID, &(gs_stApplicationPanelData.stButtonArea), APPLICATIONPANEL_COLOR_ACTIVE, "Application", RGB(0, 0, 0));
 
     kDrawDigitalClock(qwWindowID);
     kShowWindow(qwWindowID, TRUE);
@@ -99,7 +100,7 @@ static void kDrawDigitalClock(QWORD qwWindowID)
     kGetWindowArea(qwWindowID, &stWindowArea);
     kSetRectangleData(stWindowArea.iX2 - APPLICATIONPANEL_CLOCKWIDTH - 13, 5, stWindowArea.iX2 - 5, 25, &stUpdateArea);
     kDrawRect(qwWindowID, stUpdateArea.iX1, stUpdateArea.iY1, stUpdateArea.iX2, stUpdateArea.iY2, APPLICATIONPANEL_COLOR_INNERLINE, FALSE);
-    kDrawText(qwWindowID, stUpdateArea.iX1 + 4, stUpdateArea.iY1 + 3, RGB(255, 255, 255), APPLICATIONPANEL_COLOR_BACKGROUND, vcBuffer, kStrLen(vcBuffer));
+    kDrawText(qwWindowID, stUpdateArea.iX1 + 4, stUpdateArea.iY1 + 3, RGB(0, 0, 0), APPLICATIONPANEL_COLOR_BACKGROUND, vcBuffer, kStrLen(vcBuffer));
 
     kUpdateScreenByWindowArea(qwWindowID, &stUpdateArea);
 }
@@ -135,7 +136,7 @@ static BOOL kProcessApplicationPanelWindowEvent(void)
 
             if (gs_stApplicationPanelData.bApplicationWindowVisible == FALSE)
             {
-                kDrawButton(qwApplicationPanelID, &(gs_stApplicationPanelData.stButtonArea), APPLICATIONPANEL_COLOR_BACKGROUND, "Application", RGB(255, 255, 255));
+                kDrawButton(qwApplicationPanelID, &(gs_stApplicationPanelData.stButtonArea), APPLICATIONPANEL_COLOR_BACKGROUND, "Application", RGB(0, 0, 0));
 
                 kUpdateScreenByWindowArea(qwApplicationPanelID, &(gs_stApplicationPanelData.stButtonArea));
 
@@ -151,7 +152,7 @@ static BOOL kProcessApplicationPanelWindowEvent(void)
             }
             else
             {
-                kDrawButton(qwApplicationPanelID, &(gs_stApplicationPanelData.stButtonArea), APPLICATIONPANEL_COLOR_ACTIVE, "Application", RGB(255, 255, 255));
+                kDrawButton(qwApplicationPanelID, &(gs_stApplicationPanelData.stButtonArea), APPLICATIONPANEL_COLOR_ACTIVE, "Application", RGB(0, 0, 0));
                 kUpdateScreenByWindowArea(qwApplicationPanelID, &(gs_stApplicationPanelData.stButtonArea));
                 kShowWindow(qwApplicationListID, FALSE);
                 gs_stApplicationPanelData.bApplicationWindowVisible = FALSE;
@@ -221,7 +222,7 @@ static void kDrawApplicationListItem(int iIndex, BOOL bMouseOver)
     kSetRectangleData(0, iIndex * APPLICATIONPANEL_LISTITEMHEIGHT, iWindowWidth - 1, (iIndex + 1) * APPLICATIONPANEL_LISTITEMHEIGHT, &stItemArea);
     kDrawRect(qwWindowID, stItemArea.iX1, stItemArea.iY1, stItemArea.iX2, stItemArea.iY2, APPLICATIONPANEL_COLOR_INNERLINE, FALSE);
     kDrawRect(qwWindowID, stItemArea.iX1 + 1, stItemArea.iY1 + 1, stItemArea.iX2 - 1, stItemArea.iY2 - 1, stColor, TRUE);
-    kDrawText(qwWindowID, stItemArea.iX1 + 10, stItemArea.iY1 + 2, RGB(255, 255, 255), stColor, gs_vstApplicationTable[iIndex].pcApplicationName, kStrLen(gs_vstApplicationTable[iIndex].pcApplicationName));
+    kDrawText(qwWindowID, stItemArea.iX1 + 10, stItemArea.iY1 + 2, RGB(0, 0, 0), stColor, gs_vstApplicationTable[iIndex].pcApplicationName, kStrLen(gs_vstApplicationTable[iIndex].pcApplicationName));
 
     kUpdateScreenByWindowArea(qwWindowID, &stItemArea);
 }
