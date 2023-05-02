@@ -5,6 +5,8 @@
 #include "Mouse.h"
 #include "Task.h"
 #include "GUITask.h"
+#include "Font.h"
+#include "ApplicationPanelTask.h"
 
 void kStartWindowManager(void)
 {
@@ -15,6 +17,8 @@ void kStartWindowManager(void)
 
     kGetCursorPosition(&iMouseX, &iMouseY);
     kMoveCursor(iMouseX, iMouseY);
+
+    kCreateTask(TASK_FLAGS_SYSTEM | TASK_FLAGS_THREAD | TASK_FLAGS_LOW, 0, 0, (QWORD)kApplicationPanelGUITask, TASK_LOADBALANCINGID);
 
     while (TRUE)
     {
@@ -37,7 +41,7 @@ BOOL kProcessMouseData(void)
     QWORD qwWindowIDUnderMouse, qwWindowID;
     BYTE bButtonStatus, bChangedButton;
 
-    int iRelativeX, iRelativeY, iMouseX, iMouseY, iPreviousMouseX, iPreviousMouseY;
+    int iRelativeX, iRelativeY, iMouseX, iMouseY, iPreviousMouseX, iPreviousMouseY, i;
 
     RECT stWindowArea;
     EVENT stEvent;
@@ -46,21 +50,36 @@ BOOL kProcessMouseData(void)
 
     static int iWindowCount = 0;
 
-    if (kGetMouseDataFromMouseQueue(&bButtonStatus, &iRelativeX, &iRelativeY) == FALSE)
-        return FALSE;
-
     pstWindowManager = kGetWindowManager();
 
-    kGetCursorPosition(&iMouseX, &iMouseY);
+    for (i = 0; i < WINDOWMANAGER_DATAACCUMULATECOUNT; i++)
+    {
+        if (kGetMouseDataFromMouseQueue(&bButtonStatus, &iRelativeX, &iRelativeY) == FALSE)
+        {
+            if (i == 0)
+                return FALSE;
+            else
+                break;
+        }
 
-    iPreviousMouseX = iMouseX;
-    iPreviousMouseY = iMouseY;
+        kGetCursorPosition(&iMouseX, &iMouseY);
+        if (i == 0)
+        {
+            iPreviousMouseX = iMouseX;
+            iPreviousMouseY = iMouseY;
+        }
 
-    iMouseX += iRelativeX;
-    iMouseY += iRelativeY;
+        iMouseX += iRelativeX;
+        iMouseY += iRelativeY;
 
-    kMoveCursor(iMouseX, iMouseY);
-    kGetCursorPosition(&iMouseX, &iMouseY);
+        kMoveCursor(iMouseX, iMouseY);
+        kGetCursorPosition(&iMouseX, &iMouseY);
+
+        bChangedButton = pstWindowManager->bPreviousButtonStatus ^ bButtonStatus;
+
+        if (bChangedButton != 0)
+            break;
+    }
 
     qwWindowIDUnderMouse = kFindWindowByPoint(iMouseX, iMouseY);
 
@@ -113,14 +132,6 @@ BOOL kProcessMouseData(void)
         {
             kSetMouseEvent(qwWindowIDUnderMouse, EVENT_MOUSE_RBUTTONDOWN, iMouseX, iMouseY, bButtonStatus, &stEvent);
             kSendEventToWindow(qwWindowIDUnderMouse, &stEvent);
-
-            kCreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, NULL, NULL, (QWORD)kHelloWorldGUITask, TASK_LOADBALANCINGID);
-
-            // kSPrintf(vcTempTitle, "Window %d", iWindowCount++);
-            // qwWindowID = kCreateWindow(iMouseX - 10, iMouseY - WINDOW_TITLEBAR_HEIGHT / 2, 400, 200, WINDOW_FLAGS_DRAWFRAME | WINDOW_FLAGS_DRAWTITLE, vcTempTitle);
-
-            // kDrawText(qwWindowID, 10, WINDOW_TITLEBAR_HEIGHT + 10, RGB(0, 0, 0), WINDOW_COLOR_BACKGROUND, "Test!", 5);
-            // kShowWindow(qwWindowID, TRUE);
         }
         else
         {
@@ -147,9 +158,9 @@ BOOL kProcessMouseData(void)
         kSendEventToWindow(qwWindowIDUnderMouse, &stEvent);
     }
 
-    if(pstWindowManager->bWindowMoveMode == TRUE)
+    if (pstWindowManager->bWindowMoveMode == TRUE)
     {
-        if(kGetWindowArea(pstWindowManager->qwMovingWindowID, &stWindowArea) == TRUE)
+        if (kGetWindowArea(pstWindowManager->qwMovingWindowID, &stWindowArea) == TRUE)
         {
             kMoveWindow(pstWindowManager->qwMovingWindowID, stWindowArea.iX1 + iMouseX - iPreviousMouseX, stWindowArea.iY1 + iMouseY - iPreviousMouseY);
         }
@@ -171,42 +182,96 @@ BOOL kProcessKeyData(void)
     EVENT stEvent;
     QWORD qwActiveWindowID;
 
-    if(kGetKeyFromKeyQueue(&stKeyData) == FALSE)
+    if (kGetKeyFromKeyQueue(&stKeyData) == FALSE)
         return FALSE;
-    
+
     qwActiveWindowID = kGetTopWindowID();
     kSetKeyEvent(qwActiveWindowID, &stKeyData, &stEvent);
-    
+
     return kSendEventToWindow(qwActiveWindowID, &stEvent);
 }
 
 BOOL kProcessEventQueueData(void)
 {
-    EVENT stEvent;
-    WINDOWEVENT* pstWindowEvent;
+    EVENT vstEvent[WINDOWMANAGER_DATAACCUMULATECOUNT];
+    int iEventCount, i, j;
+    WINDOWEVENT *pstWindowEvent, *pstNextWindowEvent;
     QWORD qwWindowID;
-    RECT stArea;
+    RECT stArea, stOverlappedArea;
 
-    if(kReceiveEventFromWindowManagerQueue(&stEvent) == FALSE)
-        return FALSE;
-
-    pstWindowEvent = &(stEvent.stWindowEvent);
-
-    switch(stEvent.qwType)
+    for (i = 0; i < WINDOWMANAGER_DATAACCUMULATECOUNT; i++)
     {
-    case EVENT_WINDOWMANAGER_UPDATESCREENBYID:
-        if(kGetWindowArea(pstWindowEvent->qwWindowID, &stArea) == TRUE)
-            kRedrawWindowByArea(&stArea);
-        break;
-    case EVENT_WINDOWMANAGER_UPDATESCREENBYWINDOWAREA:
-        if(kConvertRectClientToScreen(pstWindowEvent->qwWindowID, &(pstWindowEvent->stArea), &stArea) == TRUE)
-            kRedrawWindowByArea(&stArea);
-        break;
-    case EVENT_WINDOWMANAGER_UPDATESCREENBYSCREENAREA:
-        kRedrawWindowByArea(&(pstWindowEvent->stArea));
-        break;
-    default:
-        break;
+        if (kReceiveEventFromWindowManagerQueue(&(vstEvent[i])) == FALSE)
+        {
+            if (i == 0)
+                return FALSE;
+            else
+                break;
+        }
+
+        pstWindowEvent = &(vstEvent[i].stWindowEvent);
+        if (vstEvent[i].qwType == EVENT_WINDOWMANAGER_UPDATESCREENBYID)
+        {
+            if (kGetWindowArea(pstWindowEvent->qwWindowID, &stArea) == FALSE)
+                kSetRectangleData(0, 0, 0, 0, &(pstWindowEvent->stArea));
+            else
+            {
+                kSetRectangleData(0, 0, kGetRectangleWidth(&stArea) - 1, kGetRectangleHeight(&stArea) - 1, &(pstWindowEvent->stArea));
+            }
+        }
+    }
+
+    iEventCount = i;
+
+    for (j = 0; j < iEventCount; j++)
+    {
+        pstWindowEvent = &(vstEvent[j].stWindowEvent);
+        if ((vstEvent[j].qwType != EVENT_WINDOWMANAGER_UPDATESCREENBYID) && (vstEvent[j].qwType != EVENT_WINDOWMANAGER_UPDATESCREENBYWINDOWAREA) && (vstEvent[j].qwType != EVENT_WINDOWMANAGER_UPDATESCREENBYSCREENAREA))
+            continue;
+
+        for (i = j + 1; i < iEventCount; i++)
+        {
+            pstNextWindowEvent = &(vstEvent[i].stWindowEvent);
+
+            if (((vstEvent[i].qwType != EVENT_WINDOWMANAGER_UPDATESCREENBYID) && (vstEvent[i].qwType != EVENT_WINDOWMANAGER_UPDATESCREENBYWINDOWAREA) &&
+                 (vstEvent[i].qwType != EVENT_WINDOWMANAGER_UPDATESCREENBYSCREENAREA)) ||
+                (pstWindowEvent->qwWindowID != pstNextWindowEvent->qwWindowID))
+            {
+                continue;
+            }
+
+            if (kGetOverlappedRectangle(&(pstWindowEvent->stArea), &(pstNextWindowEvent->stArea), &stOverlappedArea) == FALSE)
+                continue;
+
+            if (kMemCmp(&(pstWindowEvent->stArea), &stOverlappedArea, sizeof(RECT)) == 0)
+            {
+                kMemCpy(&(pstWindowEvent->stArea), &(pstNextWindowEvent->stArea), sizeof(RECT));
+                vstEvent[i].qwType = EVENT_UNKNOWN;
+            }
+            else if (kMemCmp(&(pstNextWindowEvent->stArea), &stOverlappedArea, sizeof(RECT)) == 0)
+            {
+                vstEvent[i].qwType = EVENT_UNKNOWN;
+            }
+        }
+    }
+
+    for (i = 0; i < iEventCount; i++)
+    {
+        pstWindowEvent = &(vstEvent[i].stWindowEvent);
+
+        switch (vstEvent[i].qwType)
+        {
+        case EVENT_WINDOWMANAGER_UPDATESCREENBYID:
+        case EVENT_WINDOWMANAGER_UPDATESCREENBYWINDOWAREA:
+            if (kConvertRectClientToScreen(pstWindowEvent->qwWindowID, &(pstWindowEvent->stArea), &stArea) == TRUE)
+                kRedrawWindowByArea(&stArea, pstWindowEvent->qwWindowID);
+            break;
+        case EVENT_WINDOWMANAGER_UPDATESCREENBYSCREENAREA:
+            kRedrawWindowByArea(&(pstWindowEvent->stArea), WINDOW_INVALIDID);
+            break;
+        default:
+            break;
+        }
     }
 
     return TRUE;

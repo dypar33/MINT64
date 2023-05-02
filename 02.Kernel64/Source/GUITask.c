@@ -155,7 +155,7 @@ void kHelloWorldGUITask(void)
             {
                 if(kIsInRectangle(&stButtonArea, pstMouseEvent->stPoint.iX, pstMouseEvent->stPoint.iY) == TRUE)
                 {
-                    kDrawButton(qwWindowID, &stButtonArea, RGB(146, 184, 177), "User Message Send Button(Down)", RGB(255, 255, 255));
+                    kDrawButton(qwWindowID, &stButtonArea, RGB(79, 204, 11), "User Message Send Button(Down)", RGB(255, 255, 255));
                     kUpdateScreenByID(qwWindowID);
 
                     stSendEvent.qwType = EVENT_USER_TESTMESSAGE;

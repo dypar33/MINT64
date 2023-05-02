@@ -1,5 +1,5 @@
 #include "LocalAPIC.h"
-#include "MPConfiguationTable.h"
+#include "MPConfigurationTable.h"
 
 QWORD kGetLocalAPICBaseAddress(void)
 {

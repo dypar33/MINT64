@@ -11,7 +11,7 @@
 #include "HardDisk.h"
 #include "FileSystem.h"
 #include "SerialPort.h"
-#include "MPConfiguationTable.h"
+#include "MPConfigurationTable.h"
 #include "MultiProcessor.h"
 #include "IOAPIC.h"
 #include "InterruptHandler.h"

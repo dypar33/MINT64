@@ -1,4 +1,4 @@
-#include "MPConfiguationTable.h"
+#include "MPConfigurationTable.h"
 #include "Console.h"
 #include "Utility.h"
 

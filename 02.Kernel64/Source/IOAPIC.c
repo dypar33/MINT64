@@ -1,6 +1,6 @@
 #include "IOAPIC.h"
 #include "Console.h"
-#include "MPConfiguationTable.h"
+#include "MPConfigurationTable.h"
 #include "PIC.h"
 #include "Utility.h"
 

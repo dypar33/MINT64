@@ -1,5 +1,5 @@
 #include "MultiProcessor.h"
-#include "MPConfiguationTable.h"
+#include "MPConfigurationTable.h"
 #include "AssemblyUtility.h"
 #include "LocalAPIC.h"
 #include "PIT.h"

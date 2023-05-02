@@ -13,7 +13,7 @@
 #include "MultiProcessor.h"
 #include "VBE.h"
 #include "2DGraphics.h"
-#include "MPConfiguationTable.h"
+#include "MPConfigurationTable.h"
 #include "Mouse.h"
 #include "WindowManagerTask.h"
 

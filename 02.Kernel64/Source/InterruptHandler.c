@@ -182,23 +182,13 @@ void kTimerHandler(int iVectorNumber)
     g_iTimerInterruptCount = (g_iTimerInterruptCount + 1) % 10;
     kPrintStringXY(70, 0, vcBuffer);
 
-    kSendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
-
-    kSendEOIToLocalAPIC();
-
-    g_qwTickCount++;
-
-    kDecreaseProcessorTime(bCurrentAPICID);
-    if (kIsProcessorTimeExpired(bCurrentAPICID) == TRUE)
-        kScheduleInInterrupt();
-
     iIRQ = iVectorNumber - PIC_IRQSTARTVECTOR;
 
     kSendEOI(iIRQ);
     kIncreaseInterruptCount(iIRQ);
 
     bCurrentAPICID = kGetAPICID();
-    if (bCurrentAPICID == 0)
+    if (kGetAPICID() == 0)
     {
         g_qwTickCount++;
     }
