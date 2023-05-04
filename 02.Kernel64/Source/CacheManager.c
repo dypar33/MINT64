@@ -28,7 +28,7 @@ BOOL kInitializeCacheManager(void)
 
     gs_stCacheManager.vpbBuffer[CACHE_DATAAREA] = (BYTE*) kAllocateMemory(CACHE_MAXDATAAREACOUNT * FILESYSTEM_CLUSTERSIZE);
 
-    if(gs_stCacheManager.vpbBuffer[CACHE_CLUSTERLINKTABLEAREA] == NULL)
+    if(gs_stCacheManager.vpbBuffer[CACHE_DATAAREA] == NULL)
     {
         kFreeMemory(gs_stCacheManager.vpbBuffer[CACHE_CLUSTERLINKTABLEAREA]);
         
@@ -37,7 +37,7 @@ BOOL kInitializeCacheManager(void)
 
     for (int i = 0; i < CACHE_MAXDATAAREACOUNT; i++)
     {
-        gs_stCacheManager.vvstCacheBuffer[CACHE_DATAAREA][i].pbBuffer = gs_stCacheManager.vpbBuffer[CACHE_CLUSTERLINKTABLEAREA] + (i * 512);
+        gs_stCacheManager.vvstCacheBuffer[CACHE_DATAAREA][i].pbBuffer = gs_stCacheManager.vpbBuffer[CACHE_DATAAREA] + (i * FILESYSTEM_CLUSTERSIZE);
 
         gs_stCacheManager.vvstCacheBuffer[CACHE_DATAAREA][i].dwTag = CACHE_INVALIDTAG;
     }
@@ -72,28 +72,25 @@ CACHEBUFFER* kAllocateCacheBuffer(int iCacheTableIndex)
 }
 
 
-CACHEBUFFER* kFindCacheBuffer(int iCacheTableIndex, DWORD dwTag)
-{
-    CACHEBUFFER* pstCacheBuffer;
+CACHEBUFFER *kFindCacheBuffer(int iCacheTableIndex, DWORD dwTag) {
+  CACHEBUFFER *pstCacheBuffer;
+  int i;
 
-    if(iCacheTableIndex > CACHE_MAXCACHETABLEINDEX)
-        return FALSE;
+  if (iCacheTableIndex > CACHE_MAXCACHETABLEINDEX)
+    return FALSE;
 
-    kCutDownAccessTime(iCacheTableIndex);
+  kCutDownAccessTime(iCacheTableIndex);
 
-    pstCacheBuffer = gs_stCacheManager.vvstCacheBuffer[iCacheTableIndex];
-    
-    for (int i = 0; i < gs_stCacheManager.vdwMaxCount[iCacheTableIndex]; i++)
-    {
-        if(pstCacheBuffer[i].dwTag == dwTag)
-        {
-            pstCacheBuffer[i].dwAccessTime = gs_stCacheManager.vdwAccessTime[iCacheTableIndex]++;
+  pstCacheBuffer = gs_stCacheManager.vvstCacheBuffer[iCacheTableIndex];
+  for (i = 0; i < gs_stCacheManager.vdwMaxCount[iCacheTableIndex]; i++) {
+    if (pstCacheBuffer[i].dwTag == dwTag) {
+      pstCacheBuffer[i].dwAccessTime =
+          gs_stCacheManager.vdwAccessTime[iCacheTableIndex]++;
 
-            return &(pstCacheBuffer[i]);
-        }
+      return &(pstCacheBuffer[i]);
     }
-    
-    return NULL;
+  }
+  return NULL;
 }
 
 CACHEBUFFER* kGetVictimInCacheBuffer(int iCacheTableIndex)
