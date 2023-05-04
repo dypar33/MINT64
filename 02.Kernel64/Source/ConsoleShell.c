@@ -17,30 +17,19 @@
 #include "InterruptHandler.h"
 #include "VBE.h"
 
-SHELLCOMMANDENTRY gs_vstCommandTable[] =
-    {
+SHELLCOMMANDENTRY gs_vstCommandTable[] = {
         {"help", "show help", kHelp},
         {"clear", "clear screen", kCls},
         {"totalram", "show total ram size", kShowTotalRAMSize},
-        {"strtod", "str to decimal/hex", kStringToDecimalHexTest},
         {"shutdown", "shutdown and reboot os", kShutdown},
-        {"settimer", "set pit controller counter0\n                 usage: settimer [ms] [periodic]", kSetTimer},
-        {"sleep", "sleeping\n                 usage: sleep [ms]", kSleepUsingPIT},
-        {"rdtsc", "read time stamp counter", kReadTimeStampCounter},
         {"cpuspeed", "measure cpu speed", kMeasureCPUSpeed},
         {"date", "show date and time", kShowDateAndTime},
-        {"createtask", "create task\n                 usage: createtask [type] [count]\n", kCreateTestTask},
         {"changepriority", "change task priority\n                 usage: changepriority [ID] [Priority]", kChangeTaskPriority},
         {"tasklist", "show task list\n", kShowTaskList},
         {"killtask", "end task\n                 usage: killtask [id] or 0xffffffff(all)", kKillTask},
         {"cpuload", "show processor load\n", kCPULoad},
-        {"testmutex", "test mutex function", kTestMutex},
-        {"testthread", "test thread and process function", kTestThread},
         {"showmatrix", "show matrix screen~~!!", kShowMatrix},
-        {"testpie", "pie calculation test", kTestPIE},
         {"dynamicmeminfo", "show dynamic memory info", kShowDynamicMemoryInformation},
-        {"testseqalloc", "test sequential allocation & free", kTestSequentialAllocation},
-        {"testranalloc", "test random allocation & free", kTestRandomAllocation},
         {"hddinfo", "show hdd info", kShowHDDInformation},
         {"readsector", "read hdd sector\n                 usage: readsector 0(LBA) 10(count)\n", kReadSector},
         {"writesector", "write hdd sector\n                 usage: writesector 0(LBA) 10(count)\n", kWriteSector},
@@ -52,17 +41,11 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         {"ls", "show directory\n", kShowRootDirectory},
         {"writefile", "write data to file\n                 usage: writefile [file name]", kWriteDataToFile},
         {"readfile", "read data from  file\n                 usage: readfile [file name]", kReadDataFromFile},
-        {"testfileio", "test file i/o function", kTestFileIO},
-        {"testperformance", "test file r/w performance", kTestPerformance},
         {"flush", "flush file system cache", kFlushCache},
         {"download", "download data from serial\n                 usage: download [file name]", kDownloadFile},
         {"showmpinfo", "show mp configuration table information", kShowMPConfigurationTable},
-        {"startap", "start application processor", kStartApplicationProcessor},
-        {"startsymmetricio", "start symmetric i/o mode", kStartSymmetricIOMode},
         {"showirqintinmap", "show irq->initin mapping table", kShowIRQINTINMappingTable},
         {"showintproccount", "show interrupt processing count", kShowInterruptProcessingCount},
-        {"startintloadbal", "show interrupt load balancing", kStartInterruptLoadBalancing},
-        {"starttaskloadbal", "start task load balancing", kStartTaskLoadBalancing},
         {"changeaffinity", "change task affinity\n                 usage: changeaffinity 1(ID) 0xFF(Affinity)", kChangeTaskAffinity},
         {"vbemodeinfo", "show VBE mode information", kShowVBEModeInfo},
 };
@@ -74,12 +57,18 @@ void kStartConsoleShell(void)
     int iCommandBufferIndex = 0;
     BYTE bKey;
     int iCursorX, iCursorY;
+    CONSOLEMANAGER* pstConsoleManager;
+
+    pstConsoleManager = kGetConsoleManager();
 
     kPrintf(CONSOLESHELL_PROMPTMESSAGE);
 
-    while (1)
+    while (pstConsoleManager->bExit == FALSE)
     {
         bKey = kGetCh();
+
+        if(pstConsoleManager->bExit == TRUE)
+            break;
 
         if (bKey == KEY_BACKSPACE)
         {
@@ -109,7 +98,7 @@ void kStartConsoleShell(void)
         {
             ;
         }
-        else
+        else if (bKey < 128)
         {
             if (bKey == KEY_TAB)
                 bKey = ' ';
@@ -836,7 +825,7 @@ static void kDropCharactorThread(void)
         {
             for (int i = 0; i < CONSOLE_HEIGHT; i++)
             {
-                vcText[0] = i + kRandom();
+                vcText[0] = (i + kRandom()) % 128;
                 kPrintStringXY(iX, i, vcText);
                 kSleep(50);
             }

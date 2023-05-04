@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 
     des_ip.sin_family = AF_INET;
     des_ip.sin_port = htons(4444);
-    des_ip.sin_addr.s_addr = inet_addr("172.31.160.1");
+    des_ip.sin_addr.s_addr = inet_addr("172.19.96.1");
 
     if(connect(sock, (struct sockaddr*)&des_ip, sizeof(des_ip)) == -1)
         print_error("connecting error");

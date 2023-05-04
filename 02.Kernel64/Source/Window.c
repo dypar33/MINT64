@@ -4,6 +4,7 @@
 #include "Font.h"
 #include "DynamicMemory.h"
 #include "Utility.h"
+#include "JPEG.h"
 
 static WINDOWPOOLMANAGER gs_stWindowPoolManager;
 static WINDOWMANAGER gs_stWindowManager;
@@ -94,7 +95,7 @@ void kInitializeGUISystem(void)
 {
     VBEMODEINFOBLOCK *pstModeInfo;
     QWORD qwBackgroundWindowID;
-    EVENT* pstEventBuffer;
+    EVENT *pstEventBuffer;
 
     kInitializeWindowPool();
 
@@ -114,21 +115,21 @@ void kInitializeGUISystem(void)
 
     kInitializeList(&(gs_stWindowManager.stWindowList));
 
-    pstEventBuffer = (EVENT*) kAllocateMemory(sizeof(EVENT) * EVENTQUEUE_WINDOWMANAGERMAXCOUNT);
-    if(pstEventBuffer == NULL)
+    pstEventBuffer = (EVENT *)kAllocateMemory(sizeof(EVENT) * EVENTQUEUE_WINDOWMANAGERMAXCOUNT);
+    if (pstEventBuffer == NULL)
     {
         kPrintf("Window Manager Event Queue Allocate Fail\n");
-        while(1)
+        while (1)
             ;
     }
 
     kInitializeQueue(&(gs_stWindowManager.stEventQueue), pstEventBuffer, EVENTQUEUE_WINDOWMANAGERMAXCOUNT, sizeof(EVENT));
 
     gs_stWindowManager.pbDrawBitmap = kAllocateMemory((pstModeInfo->wXResolution * pstModeInfo->wYResolution + 7) / 8);
-    if(gs_stWindowManager.pbDrawBitmap == NULL)
+    if (gs_stWindowManager.pbDrawBitmap == NULL)
     {
         kPrintf("Draw Bitmap Allocate Fail\n");
-        while(1)
+        while (1)
             ;
     }
 
@@ -142,8 +143,10 @@ void kInitializeGUISystem(void)
 
     kDrawRect(qwBackgroundWindowID, 0, 0, pstModeInfo->wXResolution - 1, pstModeInfo->wYResolution - 1, WINDOW_COLOR_SYSTEMBACKGROUND, TRUE);
 
+    kDrawBackgroundImage();
+
     kShowWindow(qwBackgroundWindowID, TRUE);
-    kPrintf("Window Manager Event Queue Allocate Fail\n");
+    kPrintf("Window Manager Event Queue Allocate Success\n");
 }
 
 WINDOWMANAGER *kGetWindowManager(void)
@@ -184,7 +187,7 @@ QWORD kCreateWindow(int iX, int iY, int iWidth, int iHeight, DWORD dwFlags, cons
     pstWindow->vcWindowTitle[WINDOW_TITLEMAXLENGTH] = '\0';
 
     pstWindow->pstWindowBuffer = (COLOR *)kAllocateMemory(iWidth * iHeight * sizeof(COLOR));
-    pstWindow->pstEventBuffer = (EVENT*) kAllocateMemory(EVENTQUEUE_WINDOWMAXCOUNT * sizeof(EVENT));
+    pstWindow->pstEventBuffer = (EVENT *)kAllocateMemory(EVENTQUEUE_WINDOWMAXCOUNT * sizeof(EVENT));
     if (pstWindow->pstWindowBuffer == NULL || pstWindow->pstEventBuffer == NULL)
     {
         kFreeMemory(pstWindow->pstWindowBuffer);
@@ -226,7 +229,7 @@ QWORD kCreateWindow(int iX, int iY, int iWidth, int iHeight, DWORD dwFlags, cons
     kSetWindowEvent(pstWindow->stLink.qwID, EVENT_WINDOW_SELECT, &stEvent);
     kSendEventToWindow(pstWindow->stLink.qwID, &stEvent);
 
-    if(qwActiveWindowID != gs_stWindowManager.qwBackgroundWindowID)
+    if (qwActiveWindowID != gs_stWindowManager.qwBackgroundWindowID)
     {
         kUpdateWindowTitle(qwActiveWindowID, FALSE);
         kSetWindowEvent(qwActiveWindowID, EVENT_WINDOW_DESELECT, &stEvent);
@@ -257,11 +260,10 @@ BOOL kDeleteWindow(QWORD qwWindowID)
     kMemCpy(&stArea, &(pstWindow->stArea), sizeof(RECT));
 
     qwActiveWindowID = kGetTopWindowID();
-    if(qwActiveWindowID == qwWindowID)
+    if (qwActiveWindowID == qwWindowID)
         bActiveWindow = TRUE;
     else
         bActiveWindow = FALSE;
-    
 
     if (kRemoveList(&(gs_stWindowManager.stWindowList), qwWindowID) == NULL)
     {
@@ -270,7 +272,7 @@ BOOL kDeleteWindow(QWORD qwWindowID)
 
         return FALSE;
     }
-    
+
     kLock(&(pstWindow->stLock));
 
     kFreeMemory(pstWindow->pstWindowBuffer);
@@ -278,7 +280,7 @@ BOOL kDeleteWindow(QWORD qwWindowID)
 
     kFreeMemory(pstWindow->pstEventBuffer);
     pstWindow->pstEventBuffer = NULL;
-    
+
     kUnlock(&(pstWindow->stLock));
 
     kFreeWindow(qwWindowID);
@@ -287,11 +289,11 @@ BOOL kDeleteWindow(QWORD qwWindowID)
 
     kUpdateScreenByScreenArea(&stArea);
 
-    if(bActiveWindow == TRUE)
+    if (bActiveWindow == TRUE)
     {
         qwActiveWindowID = kGetTopWindowID();
 
-        if(qwActiveWindowID != WINDOW_INVALIDID)
+        if (qwActiveWindowID != WINDOW_INVALIDID)
         {
             kUpdateWindowTitle(qwActiveWindowID, TRUE);
 
@@ -376,7 +378,7 @@ BOOL kShowWindow(QWORD qwWindowID, BOOL bShow)
 
     kUnlock(&(pstWindow->stLock));
 
-    if(bShow == TRUE)
+    if (bShow == TRUE)
         kUpdateScreenByID(qwWindowID);
     else
     {
@@ -419,16 +421,16 @@ BOOL kRedrawWindowByArea(const RECT *pstArea, QWORD qwDrawWindowID)
         {
             iTempOverlappedAreaSize = kGetRectangleWidth(&stTempOverlappedArea) * kGetRectangleHeight(&stTempOverlappedArea);
 
-            for(i = 0; i < WINDOW_OVERLAPPEDAREALOGMAXCOUNT; i++)
+            for (i = 0; i < WINDOW_OVERLAPPEDAREALOGMAXCOUNT; i++)
             {
-                if((iTempOverlappedAreaSize <= viLargestOverlappedAreaSize[i]) && (kIsInRectangle(&(vstLargestOverlappedArea[i]), stTempOverlappedArea.iX1, stTempOverlappedArea.iY1) == TRUE)  &&
+                if ((iTempOverlappedAreaSize <= viLargestOverlappedAreaSize[i]) && (kIsInRectangle(&(vstLargestOverlappedArea[i]), stTempOverlappedArea.iX1, stTempOverlappedArea.iY1) == TRUE) &&
                     kIsInRectangle(&(vstLargestOverlappedArea[i]), stTempOverlappedArea.iX2, stTempOverlappedArea.iY2) == TRUE)
                 {
                     break;
                 }
             }
 
-            if(i < WINDOW_OVERLAPPEDAREALOGMAXCOUNT)
+            if (i < WINDOW_OVERLAPPEDAREALOGMAXCOUNT)
             {
                 pstWindow = kGetNextFromList(&(gs_stWindowManager.stWindowList), pstWindow);
 
@@ -438,16 +440,16 @@ BOOL kRedrawWindowByArea(const RECT *pstArea, QWORD qwDrawWindowID)
             iMinAreaSize = 0xFFFFFF;
             iMinAreaIndex = 0;
 
-            for(i = 0; i < WINDOW_OVERLAPPEDAREALOGMAXCOUNT; i++)
+            for (i = 0; i < WINDOW_OVERLAPPEDAREALOGMAXCOUNT; i++)
             {
-                if(viLargestOverlappedAreaSize[i] < iMinAreaSize)
+                if (viLargestOverlappedAreaSize[i] < iMinAreaSize)
                 {
                     iMinAreaSize = viLargestOverlappedAreaSize[i];
                     iMinAreaIndex = i;
                 }
             }
 
-            if(iMinAreaSize < iTempOverlappedAreaSize)
+            if (iMinAreaSize < iTempOverlappedAreaSize)
             {
                 kMemCpy(&(vstLargestOverlappedArea[iMinAreaIndex]), &stTempOverlappedArea, sizeof(RECT));
                 viLargestOverlappedAreaSize[iMinAreaIndex] = iTempOverlappedAreaSize;
@@ -455,7 +457,7 @@ BOOL kRedrawWindowByArea(const RECT *pstArea, QWORD qwDrawWindowID)
 
             kLock(&(pstWindow->stLock));
 
-            if((qwDrawWindowID != WINDOW_INVALIDID) && (qwDrawWindowID != pstWindow->stLink.qwID))
+            if ((qwDrawWindowID != WINDOW_INVALIDID) && (qwDrawWindowID != pstWindow->stLink.qwID))
                 kFillDrawBitmap(&stDrawBitmap, &(pstWindow->stArea), FALSE);
             else
                 kCopyWindowBufferToFrameBuffer(pstWindow, &stDrawBitmap);
@@ -463,7 +465,7 @@ BOOL kRedrawWindowByArea(const RECT *pstArea, QWORD qwDrawWindowID)
             kUnlock(&(pstWindow->stLock));
         }
 
-        if(kIsDrawBitmapAllOff(&(stDrawBitmap)) == TRUE)
+        if (kIsDrawBitmapAllOff(&(stDrawBitmap)) == TRUE)
             break;
 
         pstWindow = kGetNextFromList(&(gs_stWindowManager.stWindowList), pstWindow);
@@ -477,7 +479,7 @@ BOOL kRedrawWindowByArea(const RECT *pstArea, QWORD qwDrawWindowID)
         kDrawCursor(gs_stWindowManager.iMouseX, gs_stWindowManager.iMouseY);
 }
 
-static void kCopyWindowBufferToFrameBuffer(const WINDOW *pstWindow, DRAWBITMAP* pstDrawBitmap)
+static void kCopyWindowBufferToFrameBuffer(const WINDOW *pstWindow, DRAWBITMAP *pstDrawBitmap)
 {
     RECT stTempArea, stOverlappedArea;
     COLOR *pstCurrentVideoMemoryAddress, *pstCurrentWindowBufferAddress;
@@ -497,22 +499,22 @@ static void kCopyWindowBufferToFrameBuffer(const WINDOW *pstWindow, DRAWBITMAP* 
     iOverlappedWidth = kGetRectangleWidth(&stOverlappedArea);
     iOverlappedHeight = kGetRectangleHeight(&stOverlappedArea);
 
-    for(iOffsetY = 0; iOffsetY < iOverlappedHeight; iOffsetY++)
+    for (iOffsetY = 0; iOffsetY < iOverlappedHeight; iOffsetY++)
     {
-        if(kGetStartPositionInDrawBitmap(pstDrawBitmap, stOverlappedArea.iX1, stOverlappedArea.iY1 + iOffsetY, &iByteOffset, &iBitOffset) == FALSE)
+        if (kGetStartPositionInDrawBitmap(pstDrawBitmap, stOverlappedArea.iX1, stOverlappedArea.iY1 + iOffsetY, &iByteOffset, &iBitOffset) == FALSE)
             break;
-        
+
         pstCurrentVideoMemoryAddress = gs_stWindowManager.pstVideoMemory + (stOverlappedArea.iY1 + iOffsetY) * iScreenWidth + stOverlappedArea.iX1;
 
         pstCurrentWindowBufferAddress = pstWindow->pstWindowBuffer + (stOverlappedArea.iY1 - pstWindow->stArea.iY1 + iOffsetY) * iWindowWidth + (stOverlappedArea.iX1 - pstWindow->stArea.iX1);
 
-        for(iOffsetX = 0; iOffsetX < iOverlappedWidth;)
+        for (iOffsetX = 0; iOffsetX < iOverlappedWidth;)
         {
-            if((pstDrawBitmap->pbBitmap[iByteOffset] == 0xFF) && (iBitOffset == 0x00) && (iOverlappedWidth - iOffsetX) >= 8)
+            if ((pstDrawBitmap->pbBitmap[iByteOffset] == 0xFF) && (iBitOffset == 0x00) && (iOverlappedWidth - iOffsetX) >= 8)
             {
-                for(iBulkCount = 0; (iBulkCount < ((iOverlappedWidth - iOffsetX) >> 3)); iBulkCount++)
+                for (iBulkCount = 0; (iBulkCount < ((iOverlappedWidth - iOffsetX) >> 3)); iBulkCount++)
                 {
-                    if(pstDrawBitmap->pbBitmap[iByteOffset + iBulkCount] != 0xFF)
+                    if (pstDrawBitmap->pbBitmap[iByteOffset + iBulkCount] != 0xFF)
                         break;
                 }
 
@@ -527,11 +529,11 @@ static void kCopyWindowBufferToFrameBuffer(const WINDOW *pstWindow, DRAWBITMAP* 
                 iByteOffset += iBulkCount;
                 iBitOffset = 0;
             }
-            else if(pstDrawBitmap->pbBitmap[iByteOffset] == 0x00 && iBitOffset == 0x00 && (iOverlappedWidth - iOffsetX) >= 8)
+            else if (pstDrawBitmap->pbBitmap[iByteOffset] == 0x00 && iBitOffset == 0x00 && (iOverlappedWidth - iOffsetX) >= 8)
             {
-                for(iBulkCount = 0; (iBulkCount < ((iOverlappedWidth - iOffsetX) >> 3)); iBulkCount++)
+                for (iBulkCount = 0; (iBulkCount < ((iOverlappedWidth - iOffsetX) >> 3)); iBulkCount++)
                 {
-                    if(pstDrawBitmap->pbBitmap[iByteOffset + iBulkCount] != 0x00)
+                    if (pstDrawBitmap->pbBitmap[iByteOffset + iBulkCount] != 0x00)
                         break;
                 }
 
@@ -549,9 +551,9 @@ static void kCopyWindowBufferToFrameBuffer(const WINDOW *pstWindow, DRAWBITMAP* 
 
                 iLastBitOffset = MIN(8, iOverlappedWidth - iOffsetX + iBitOffset);
 
-                for(i = iBitOffset; i < iLastBitOffset; i++)
+                for (i = iBitOffset; i < iLastBitOffset; i++)
                 {
-                    if(bTempBitmap & (0x01 << i))
+                    if (bTempBitmap & (0x01 << i))
                     {
                         *pstCurrentVideoMemoryAddress = *pstCurrentWindowBufferAddress;
 
@@ -573,11 +575,10 @@ static void kCopyWindowBufferToFrameBuffer(const WINDOW *pstWindow, DRAWBITMAP* 
     }
 }
 
-
 QWORD kFindWindowByPoint(int iX, int iY)
 {
     QWORD qwWindowID;
-    WINDOW* pstWindow;
+    WINDOW *pstWindow;
 
     qwWindowID = gs_stWindowManager.qwBackgroundWindowID;
 
@@ -586,7 +587,7 @@ QWORD kFindWindowByPoint(int iX, int iY)
     pstWindow = kGetHeaderFromList(&(gs_stWindowManager.stWindowList));
     do
     {
-        if((pstWindow != NULL) && (pstWindow->dwFlags & WINDOW_FLAGS_SHOW) && (kIsInRectangle(&(pstWindow->stArea), iX, iY) == TRUE))
+        if ((pstWindow != NULL) && (pstWindow->dwFlags & WINDOW_FLAGS_SHOW) && (kIsInRectangle(&(pstWindow->stArea), iX, iY) == TRUE))
         {
             qwWindowID = pstWindow->stLink.qwID;
 
@@ -595,7 +596,7 @@ QWORD kFindWindowByPoint(int iX, int iY)
 
         pstWindow = kGetNextFromList(&(gs_stWindowManager.stWindowList), pstWindow);
     } while (pstWindow != NULL);
-    
+
     kUnlock(&(gs_stWindowManager.stLock));
 
     return qwWindowID;
@@ -604,7 +605,7 @@ QWORD kFindWindowByPoint(int iX, int iY)
 QWORD kFindWindowByTitle(const char *pcTitle)
 {
     QWORD qwWindowID;
-    WINDOW* pstWindow;
+    WINDOW *pstWindow;
     int iTitleLength;
 
     qwWindowID = WINDOW_INVALIDID;
@@ -613,9 +614,9 @@ QWORD kFindWindowByTitle(const char *pcTitle)
     kLock(&(gs_stWindowManager.stLock));
 
     pstWindow = kGetHeaderFromList(&(gs_stWindowManager.stWindowList));
-    while(pstWindow != NULL)
+    while (pstWindow != NULL)
     {
-        if((kStrLen(pstWindow->vcWindowTitle) == iTitleLength) && (kMemCmp(pstWindow->vcWindowTitle, pcTitle, iTitleLength) == 0))
+        if ((kStrLen(pstWindow->vcWindowTitle) == iTitleLength) && (kMemCmp(pstWindow->vcWindowTitle, pcTitle, iTitleLength) == 0))
         {
             qwWindowID = pstWindow->stLink.qwID;
 
@@ -632,21 +633,21 @@ QWORD kFindWindowByTitle(const char *pcTitle)
 
 BOOL kIsWindowExist(QWORD qwWindowID)
 {
-    if(kGetWindow(qwWindowID) == NULL)
+    if (kGetWindow(qwWindowID) == NULL)
         return FALSE;
-    
+
     return TRUE;
 }
 
 QWORD kGetTopWindowID(void)
 {
-    WINDOW* pstActiveWindow;
+    WINDOW *pstActiveWindow;
     QWORD qwActiveWindowID;
 
     kLock(&(gs_stWindowManager.stLock));
 
-    pstActiveWindow = (WINDOW*) kGetHeaderFromList(&(gs_stWindowManager.stWindowList));
-    if(pstActiveWindow != NULL)
+    pstActiveWindow = (WINDOW *)kGetHeaderFromList(&(gs_stWindowManager.stWindowList));
+    if (pstActiveWindow != NULL)
         qwActiveWindowID = pstActiveWindow->stLink.qwID;
     else
         qwActiveWindowID = WINDOW_INVALIDID;
@@ -682,12 +683,12 @@ BOOL kMoveWindowToTop(QWORD qwWindowID)
 
     kUnlock(&(gs_stWindowManager.stLock));
 
-    if (pstWindow != NULL) 
+    if (pstWindow != NULL)
     {
         kSetWindowEvent(qwWindowID, EVENT_WINDOW_SELECT, &stEvent);
         kSendEventToWindow(qwWindowID, &stEvent);
 
-        if (dwFlags & WINDOW_FLAGS_DRAWTITLE) 
+        if (dwFlags & WINDOW_FLAGS_DRAWTITLE)
         {
             kUpdateWindowTitle(qwWindowID, TRUE);
             stArea.iY1 += WINDOW_TITLEBAR_HEIGHT;
@@ -708,45 +709,45 @@ BOOL kMoveWindowToTop(QWORD qwWindowID)
 
 BOOL kIsInTitleBar(QWORD qwWindowID, int iX, int iY)
 {
-    WINDOW* pstWindow;
+    WINDOW *pstWindow;
 
     pstWindow = kGetWindow(qwWindowID);
 
-    if((pstWindow == NULL) || (pstWindow->dwFlags & WINDOW_FLAGS_DRAWTITLE) == 0)
+    if ((pstWindow == NULL) || (pstWindow->dwFlags & WINDOW_FLAGS_DRAWTITLE) == 0)
         return FALSE;
 
-    if(pstWindow->stArea.iX1 <= iX && iX <= pstWindow->stArea.iX2 && pstWindow->stArea.iY1 <= iY && iY <= pstWindow->stArea.iY1 + WINDOW_TITLEBAR_HEIGHT)
+    if (pstWindow->stArea.iX1 <= iX && iX <= pstWindow->stArea.iX2 && pstWindow->stArea.iY1 <= iY && iY <= pstWindow->stArea.iY1 + WINDOW_TITLEBAR_HEIGHT)
         return TRUE;
-    
+
     return FALSE;
 }
 
 BOOL kIsInCloseButton(QWORD qwWindowID, int iX, int iY)
 {
-    WINDOW* pstWindow;
+    WINDOW *pstWindow;
 
     pstWindow = kGetWindow(qwWindowID);
-    if((pstWindow == NULL) && (pstWindow->dwFlags & WINDOW_FLAGS_DRAWTITLE) == 0)
+    if ((pstWindow == NULL) && (pstWindow->dwFlags & WINDOW_FLAGS_DRAWTITLE) == 0)
         return FALSE;
-    
-    if((pstWindow->stArea.iX2 - WINDOW_XBUTTON_SIZE - 1) <= iX && (iX <= (pstWindow->stArea.iX2 - 1)) && ((pstWindow->stArea.iY1 + 1) <= iY) && (iY <= (pstWindow->stArea.iY1 + 1 + WINDOW_XBUTTON_SIZE)))
+
+    if ((pstWindow->stArea.iX2 - WINDOW_XBUTTON_SIZE - 1) <= iX && (iX <= (pstWindow->stArea.iX2 - 1)) && ((pstWindow->stArea.iY1 + 1) <= iY) && (iY <= (pstWindow->stArea.iY1 + 1 + WINDOW_XBUTTON_SIZE)))
         return TRUE;
-    
+
     return FALSE;
 }
 
 BOOL kMoveWindow(QWORD qwWindowID, int iX, int iY)
 {
-    WINDOW* pstWindow;
+    WINDOW *pstWindow;
     RECT stPreviousArea;
 
     int iWidth, iHeight;
     EVENT stEvent;
 
     pstWindow = kGetWindowWithWindowLock(qwWindowID);
-    if(pstWindow == NULL)
+    if (pstWindow == NULL)
         return FALSE;
-    
+
     kMemCpy(&stPreviousArea, &(pstWindow->stArea), sizeof(RECT));
 
     iWidth = kGetRectangleWidth(&stPreviousArea);
@@ -765,15 +766,14 @@ BOOL kMoveWindow(QWORD qwWindowID, int iX, int iY)
     return TRUE;
 }
 
-
 static BOOL kUpdateWindowTitle(QWORD qwWindowID, BOOL bSelectedTitle)
 {
-    WINDOW* pstWindow;
+    WINDOW *pstWindow;
     RECT stTitleBarArea;
 
     pstWindow = kGetWindow(qwWindowID);
 
-    if(pstWindow != NULL && pstWindow->dwFlags & WINDOW_FLAGS_DRAWTITLE)
+    if (pstWindow != NULL && pstWindow->dwFlags & WINDOW_FLAGS_DRAWTITLE)
     {
         kDrawWindowTitle(pstWindow->stLink.qwID, pstWindow->vcWindowTitle, bSelectedTitle);
         stTitleBarArea.iX1 = 0;
@@ -791,12 +791,12 @@ static BOOL kUpdateWindowTitle(QWORD qwWindowID, BOOL bSelectedTitle)
 
 BOOL kGetWindowArea(QWORD qwWindowID, RECT *pstArea)
 {
-    WINDOW* pstWindow;
+    WINDOW *pstWindow;
 
     pstWindow = kGetWindowWithWindowLock(qwWindowID);
-    if(pstWindow == NULL)
+    if (pstWindow == NULL)
         return FALSE;
-    
+
     kMemCpy(pstArea, &(pstWindow->stArea), sizeof(RECT));
 
     kUnlock(&(pstWindow->stLock));
@@ -808,9 +808,9 @@ BOOL kConvertPointScreenToClient(QWORD qwWindowID, const POINT *pstXY, POINT *ps
 {
     RECT stArea;
 
-    if(kGetWindowArea(qwWindowID, &stArea) == FALSE)
+    if (kGetWindowArea(qwWindowID, &stArea) == FALSE)
         return FALSE;
-    
+
     pstXYInWindow->iX = pstXY->iX - stArea.iX1;
     pstXYInWindow->iY = pstXY->iY - stArea.iY1;
 
@@ -821,7 +821,7 @@ BOOL kConvertPointClientToScreen(QWORD qwWindowID, const POINT *pstXY, POINT *ps
 {
     RECT stArea;
 
-    if(kGetWindowArea(qwWindowID, &stArea) == FALSE)
+    if (kGetWindowArea(qwWindowID, &stArea) == FALSE)
         return FALSE;
 
     pstXYInScreen->iX = pstXY->iX + stArea.iX1;
@@ -834,7 +834,7 @@ BOOL kConvertRectScreenToClient(QWORD qwWindowID, const RECT *pstArea, RECT *pst
 {
     RECT stWindowArea;
 
-    if(kGetWindowArea(qwWindowID, &stWindowArea) == FALSE)
+    if (kGetWindowArea(qwWindowID, &stWindowArea) == FALSE)
         return FALSE;
 
     pstAreaInWindow->iX1 = pstArea->iX1 - stWindowArea.iX1;
@@ -849,9 +849,9 @@ BOOL kConvertRectClientToScreen(QWORD qwWindowID, const RECT *pstArea, RECT *pst
 {
     RECT stWindowArea;
 
-    if(kGetWindowArea(qwWindowID, &stWindowArea) == FALSE)
+    if (kGetWindowArea(qwWindowID, &stWindowArea) == FALSE)
         return FALSE;
-    
+
     pstAreaInScreen->iX1 = pstArea->iX1 + stWindowArea.iX1;
     pstAreaInScreen->iY1 = pstArea->iY1 + stWindowArea.iY1;
     pstAreaInScreen->iX2 = pstArea->iX2 + stWindowArea.iX1;
@@ -863,10 +863,10 @@ BOOL kConvertRectClientToScreen(QWORD qwWindowID, const RECT *pstArea, RECT *pst
 BOOL kUpdateScreenByID(QWORD qwWindowID)
 {
     EVENT stEvent;
-    WINDOW* pstWindow;
+    WINDOW *pstWindow;
 
     pstWindow = kGetWindow(qwWindowID);
-    if(pstWindow == NULL && (pstWindow->dwFlags & WINDOW_FLAGS_SHOW) == 0)
+    if (pstWindow == NULL && (pstWindow->dwFlags & WINDOW_FLAGS_SHOW) == 0)
         return FALSE;
 
     stEvent.qwType = EVENT_WINDOWMANAGER_UPDATESCREENBYID;
@@ -878,12 +878,12 @@ BOOL kUpdateScreenByID(QWORD qwWindowID)
 BOOL kUpdateScreenByWindowArea(QWORD qwWindowID, const RECT *pstArea)
 {
     EVENT stEvent;
-    WINDOW* pstWindow;
+    WINDOW *pstWindow;
 
     pstWindow = kGetWindow(qwWindowID);
-    if(pstWindow == NULL && (pstWindow->dwFlags & WINDOW_FLAGS_SHOW) == 0)
+    if (pstWindow == NULL && (pstWindow->dwFlags & WINDOW_FLAGS_SHOW) == 0)
         return FALSE;
-    
+
     stEvent.qwType = EVENT_WINDOWMANAGER_UPDATESCREENBYWINDOWAREA;
     stEvent.stWindowEvent.qwWindowID = qwWindowID;
     kMemCpy(&(stEvent.stWindowEvent.stArea), pstArea, sizeof(RECT));
@@ -904,13 +904,13 @@ BOOL kUpdateScreenByScreenArea(const RECT *pstArea)
 
 BOOL kSendEventToWindow(QWORD qwWindowID, const EVENT *pstEvent)
 {
-    WINDOW* pstWindow;
+    WINDOW *pstWindow;
     BOOL bResult;
 
     pstWindow = kGetWindowWithWindowLock(qwWindowID);
-    if(pstWindow == NULL)
+    if (pstWindow == NULL)
         return FALSE;
-    
+
     bResult = kPutQueue(&(pstWindow->stEventQueue), pstEvent);
 
     kUnlock(&(pstWindow->stLock));
@@ -920,13 +920,13 @@ BOOL kSendEventToWindow(QWORD qwWindowID, const EVENT *pstEvent)
 
 BOOL kReceiveEventFromWindowQueue(QWORD qwWindowID, EVENT *pstEvent)
 {
-    WINDOW* pstWindow;
+    WINDOW *pstWindow;
     BOOL bResult;
 
     pstWindow = kGetWindowWithWindowLock(qwWindowID);
-    if(pstWindow == NULL)
+    if (pstWindow == NULL)
         return FALSE;
-    
+
     bResult = kGetQueue(&(pstWindow->stEventQueue), pstEvent);
 
     kUnlock(&(pstWindow->stLock));
@@ -938,7 +938,7 @@ BOOL kSendEventToWindowManager(const EVENT *pstEvent)
 {
     BOOL bResult = FALSE;
 
-    if(kIsQueueFull(&(gs_stWindowManager.stEventQueue)) == FALSE)
+    if (kIsQueueFull(&(gs_stWindowManager.stEventQueue)) == FALSE)
     {
         kLock(&(gs_stWindowManager.stLock));
 
@@ -954,7 +954,7 @@ BOOL kReceiveEventFromWindowManagerQueue(EVENT *pstEvent)
 {
     BOOL bResult = FALSE;
 
-    if(kIsQueueEmpty(&(gs_stWindowManager.stEventQueue)) == FALSE)
+    if (kIsQueueEmpty(&(gs_stWindowManager.stEventQueue)) == FALSE)
     {
         kLock(&(gs_stWindowManager.stLock));
 
@@ -983,16 +983,16 @@ BOOL kSetMouseEvent(QWORD qwWindowID, QWORD qwEventType, int iMouseX, int iMouse
         stMouseXY.iX = iMouseX;
         stMouseXY.iY = iMouseY;
 
-        if(kConvertPointScreenToClient(qwWindowID, &stMouseXY, &stMouseXYInWindow) == FALSE)
+        if (kConvertPointScreenToClient(qwWindowID, &stMouseXY, &stMouseXYInWindow) == FALSE)
             return FALSE;
-        
+
         pstEvent->qwType = qwEventType;
         pstEvent->stMouseEvent.qwWindowID = qwWindowID;
         pstEvent->stMouseEvent.bButtonStatus = bButtonStatus;
         kMemCpy(&(pstEvent->stMouseEvent.stPoint), &stMouseXYInWindow, sizeof(POINT));
-        
+
         break;
-    
+
     default:
         return FALSE;
     }
@@ -1015,7 +1015,7 @@ BOOL kSetWindowEvent(QWORD qwWindowID, QWORD qwEventType, EVENT *pstEvent)
 
         pstEvent->stWindowEvent.qwWindowID = qwWindowID;
 
-        if(kGetWindowArea(qwWindowID, &stArea) == FALSE)
+        if (kGetWindowArea(qwWindowID, &stArea) == FALSE)
             return FALSE;
 
         kMemCpy(&(pstEvent->stWindowEvent.stArea), &stArea, sizeof(RECT));
@@ -1030,11 +1030,11 @@ BOOL kSetWindowEvent(QWORD qwWindowID, QWORD qwEventType, EVENT *pstEvent)
 
 void kSetKeyEvent(QWORD qwWindow, const KEYDATA *pstKeyData, EVENT *pstEvent)
 {
-    if(pstKeyData->bFlags & KEY_FLAGS_DOWN)
+    if (pstKeyData->bFlags & KEY_FLAGS_DOWN)
         pstEvent->qwType = EVENT_KEY_DOWN;
     else
         pstEvent->qwType = EVENT_KEY_UP;
-    
+
     pstEvent->stKeyEvent.bASCIICode = pstKeyData->bASCIICode;
     pstEvent->stKeyEvent.bScanCode = pstKeyData->bScanCode;
     pstEvent->stKeyEvent.bFlags = pstKeyData->bFlags;
@@ -1113,7 +1113,7 @@ BOOL kDrawWindowTitle(QWORD qwWindowID, const char *pcTitle, BOOL bSelectedTitle
 
     kSetRectangleData(0, 0, iWidth - 1, iHeight - 1, &stArea);
 
-    if(bSelectedTitle == TRUE)
+    if (bSelectedTitle == TRUE)
         stTitleBarColor = WINDOW_COLOR_TITLEBARACTIVEBACKGROUND;
     else
         stTitleBarColor = WINDOW_COLOR_TITLEBARINACTIVEBACKGROUND;
@@ -1126,7 +1126,7 @@ BOOL kDrawWindowTitle(QWORD qwWindowID, const char *pcTitle, BOOL bSelectedTitle
     kInternalDrawLine(&stArea, pstWindow->pstWindowBuffer, 1, 2, iWidth - 1, 2, WINDOW_COLOR_TITLEBARBRIGHT2);
     kInternalDrawLine(&stArea, pstWindow->pstWindowBuffer, 1, 2, 1, WINDOW_TITLEBAR_HEIGHT - 1, WINDOW_COLOR_TITLEBARBRIGHT1);
     kInternalDrawLine(&stArea, pstWindow->pstWindowBuffer, 2, 2, 2, WINDOW_TITLEBAR_HEIGHT - 1, WINDOW_COLOR_TITLEBARBRIGHT2);
-    
+
     kInternalDrawLine(&stArea, pstWindow->pstWindowBuffer, 2, WINDOW_TITLEBAR_HEIGHT - 2, iWidth - 2, WINDOW_TITLEBAR_HEIGHT - 2, WINDOW_COLOR_TITLEBARUNDERLINE);
     kInternalDrawLine(&stArea, pstWindow->pstWindowBuffer, 2, WINDOW_TITLEBAR_HEIGHT - 1, iWidth - 2, WINDOW_TITLEBAR_HEIGHT - 1, WINDOW_COLOR_TITLEBARUNDERLINE);
 
@@ -1198,26 +1198,406 @@ BOOL kDrawButton(QWORD qwWindowID, RECT *pstButtonArea, COLOR stBackgroundColor,
 }
 
 static BYTE gs_vwMouseBuffer[MOUSE_CURSOR_WIDTH * MOUSE_CURSOR_HEIGHT] = {
-    1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0,
-    0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1,
-    0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 1, 1,
-    0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 1, 1, 0, 0,
-    0, 1, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1, 0, 0, 0, 0,
-    0, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0,
-    0, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0,
-    0, 0, 1, 2, 2, 3, 3, 3, 2, 2, 3, 3, 3, 2, 1, 0, 0, 0, 0, 0,
-    0, 0, 0, 1, 2, 3, 3, 2, 1, 1, 2, 3, 2, 2, 2, 1, 0, 0, 0, 0,
-    0, 0, 0, 1, 2, 3, 2, 2, 1, 0, 1, 2, 2, 2, 2, 2, 1, 0, 0, 0,
-    0, 0, 0, 1, 2, 3, 2, 1, 0, 0, 0, 1, 2, 2, 2, 2, 2, 1, 0, 0,
-    0, 0, 0, 1, 2, 2, 2, 1, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 1, 0,
-    0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 1,
-    0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0,
-    0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0,
-    0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    3,
+    3,
+    3,
+    3,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    2,
+    2,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    2,
+    2,
+    2,
+    1,
+    1,
+    0,
+    1,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    2,
+    2,
+    2,
+    1,
+    1,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    2,
+    2,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    2,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    3,
+    3,
+    3,
+    2,
+    2,
+    3,
+    3,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    3,
+    2,
+    1,
+    1,
+    2,
+    3,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    2,
+    2,
+    1,
+    0,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    2,
+    1,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
 };
 
 static void kDrawCursor(int iX, int iY)
@@ -1287,7 +1667,6 @@ void kGetCursorPosition(int *piX, int *piY)
     *piX = gs_stWindowManager.iMouseX;
     *piY = gs_stWindowManager.iMouseY;
 }
-
 
 BOOL kDrawPixel(QWORD qwWindowID, int iX, int iY, COLOR stColor)
 {
@@ -1376,9 +1755,9 @@ BOOL kDrawText(QWORD qwWindowID, int iX, int iY, COLOR stTextColor, COLOR stBack
 
 BOOL kCreateDrawBitmap(const RECT *pstArea, DRAWBITMAP *pstDrawBitmap)
 {
-    if(kGetOverlappedRectangle(&(gs_stWindowManager.stScreenArea), pstArea, &(pstDrawBitmap->stArea)) == FALSE)
+    if (kGetOverlappedRectangle(&(gs_stWindowManager.stScreenArea), pstArea, &(pstDrawBitmap->stArea)) == FALSE)
         return FALSE;
-    
+
     pstDrawBitmap->pbBitmap = gs_stWindowManager.pbDrawBitmap;
 
     return kFillDrawBitmap(pstDrawBitmap, &(pstDrawBitmap->stArea), TRUE);
@@ -1391,28 +1770,28 @@ static BOOL kFillDrawBitmap(DRAWBITMAP *pstDrawBitmap, RECT *pstArea, BOOL bFill
     int i, iOffsetX, iOffsetY, iBulkCount, iLastBitOffset;
     BYTE bTempBitmap;
 
-    if(kGetOverlappedRectangle(&(pstDrawBitmap->stArea), pstArea, &stOverlappedArea) == FALSE)
+    if (kGetOverlappedRectangle(&(pstDrawBitmap->stArea), pstArea, &stOverlappedArea) == FALSE)
         return FALSE;
-    
+
     iOverlappedWidth = kGetRectangleWidth(&stOverlappedArea);
     iOverlappedHeight = kGetRectangleHeight(&stOverlappedArea);
 
-    for(iOffsetY = 0; iOffsetY < iOverlappedHeight; iOffsetY++)
+    for (iOffsetY = 0; iOffsetY < iOverlappedHeight; iOffsetY++)
     {
-        if(kGetStartPositionInDrawBitmap(pstDrawBitmap, stOverlappedArea.iX1, stOverlappedArea.iY1 + iOffsetY, &iByteOffset, &iBitOffset) == FALSE)
+        if (kGetStartPositionInDrawBitmap(pstDrawBitmap, stOverlappedArea.iX1, stOverlappedArea.iY1 + iOffsetY, &iByteOffset, &iBitOffset) == FALSE)
             break;
-        
-        for(iOffsetX = 0; iOffsetX < iOverlappedWidth;)
+
+        for (iOffsetX = 0; iOffsetX < iOverlappedWidth;)
         {
-            if((iBitOffset == 0x00) && (iOverlappedWidth - iOffsetX >= 8))
+            if ((iBitOffset == 0x00) && (iOverlappedWidth - iOffsetX >= 8))
             {
                 iBulkCount = (iOverlappedWidth - iOffsetX) >> 3;
 
-                if(bFill == TRUE)
+                if (bFill == TRUE)
                     kMemSet(pstDrawBitmap->pbBitmap + iByteOffset, 0xFF, iBulkCount);
                 else
                     kMemSet(pstDrawBitmap->pbBitmap + iByteOffset, 0x00, iBulkCount);
-                
+
                 iOffsetX += iBulkCount << 3;
 
                 iByteOffset += iBulkCount;
@@ -1423,17 +1802,17 @@ static BOOL kFillDrawBitmap(DRAWBITMAP *pstDrawBitmap, RECT *pstArea, BOOL bFill
                 iLastBitOffset = MIN(8, iOverlappedWidth - iOffsetX + iBitOffset);
 
                 bTempBitmap = 0;
-                for(i = iBitOffset; i < iLastBitOffset; i++)
+                for (i = iBitOffset; i < iLastBitOffset; i++)
                 {
                     bTempBitmap |= (0x01 << i);
                 }
 
                 iOffsetX += (iLastBitOffset - iBitOffset);
-                if(bFill == TRUE)
+                if (bFill == TRUE)
                     pstDrawBitmap->pbBitmap[iByteOffset] |= bTempBitmap;
                 else
                     pstDrawBitmap->pbBitmap[iByteOffset] &= ~(bTempBitmap);
-                
+
                 iByteOffset++;
                 iBitOffset = 0;
             }
@@ -1447,9 +1826,9 @@ inline BOOL kGetStartPositionInDrawBitmap(const DRAWBITMAP *pstDrawBitmap, int i
 {
     int iWidth, iOffsetX, iOffsetY;
 
-    if(kIsInRectangle(&(pstDrawBitmap->stArea), iX, iY) == FALSE)
+    if (kIsInRectangle(&(pstDrawBitmap->stArea), iX, iY) == FALSE)
         return FALSE;
-    
+
     iOffsetX = iX - pstDrawBitmap->stArea.iX1;
     iOffsetY = iY - pstDrawBitmap->stArea.iY1;
 
@@ -1464,7 +1843,7 @@ inline BOOL kGetStartPositionInDrawBitmap(const DRAWBITMAP *pstDrawBitmap, int i
 inline BOOL kIsDrawBitmapAllOff(const DRAWBITMAP *pstDrawBitmap)
 {
     int iByteCount, iLastBitIndex, iWidth, iHeight, i, iSize;
-    BYTE* pbTempPosition;
+    BYTE *pbTempPosition;
 
     iWidth = kGetRectangleWidth(&(pstDrawBitmap->stArea));
     iHeight = kGetRectangleHeight(&(pstDrawBitmap->stArea));
@@ -1473,28 +1852,121 @@ inline BOOL kIsDrawBitmapAllOff(const DRAWBITMAP *pstDrawBitmap)
     iByteCount = iSize >> 3;
 
     pbTempPosition = pstDrawBitmap->pbBitmap;
-    for(i = 0; i < (iByteCount >> 3); i++)
+    for (i = 0; i < (iByteCount >> 3); i++)
     {
-        if(*(QWORD*)(pbTempPosition) != 0)
+        if (*(QWORD *)(pbTempPosition) != 0)
             return FALSE;
 
         pbTempPosition += 8;
     }
 
-    for(i = 0; i < (iByteCount & 0x7); i++)
+    for (i = 0; i < (iByteCount & 0x7); i++)
     {
-        if(*pbTempPosition != 0)
+        if (*pbTempPosition != 0)
             return FALSE;
-        
+
         pbTempPosition++;
     }
 
     iLastBitIndex = iSize & 0x7;
-    for(i = 0; i < iLastBitIndex; i++)
+    for (i = 0; i < iLastBitIndex; i++)
     {
-        if(*pbTempPosition & (0x01 << i))
+        if (*pbTempPosition & (0x01 << i))
             return FALSE;
     }
 
     return TRUE;
+}
+
+BOOL kBitBlt(QWORD qwWindowID, int iX, int iY, COLOR *pstBuffer, int iWidth, int iHeight)
+{
+    WINDOW *pstWindow;
+    RECT stWindowArea, stBufferArea, stOverlappedArea;
+    int iWindowWidth, iOverlappedWidth, iOverlappedHeight, i, j, iWindowPosition, iBufferPosition, iStartX, iStartY;
+
+    pstWindow = kGetWindowWithWindowLock(qwWindowID);
+    if (pstWindow == NULL)
+        return FALSE;
+
+    kSetRectangleData(0, 0, pstWindow->stArea.iX2 - pstWindow->stArea.iX1, pstWindow->stArea.iY2 - pstWindow->stArea.iY1, &stWindowArea);
+
+    kSetRectangleData(iX, iY, iX + iWidth - 1, iY + iHeight - 1, &stBufferArea);
+
+    if(kGetOverlappedRectangle(&stWindowArea, &stBufferArea, &stOverlappedArea) == FALSE)
+    {
+        kUnlock(&pstWindow->stLock);
+        return FALSE;
+    }
+
+    iWindowWidth = kGetRectangleWidth(&stWindowArea);
+    iOverlappedWidth = kGetRectangleWidth(&stOverlappedArea);
+    iOverlappedHeight = kGetRectangleHeight(&stOverlappedArea);
+
+    if(iX < 0)
+        iStartX = iX;
+    else
+        iStartX = 0;
+    
+    if(iY < 0)
+        iStartY = iY;
+    else
+        iStartY = 0;
+
+    for(j = 0; j < iOverlappedHeight; j++)
+    {
+        iWindowPosition = (iWindowWidth * (stOverlappedArea.iY1 + j)) + stOverlappedArea.iX1;
+        iBufferPosition = (iWidth * j + iStartY) + iStartX;
+
+        kMemCpy(pstWindow->pstWindowBuffer + iWindowPosition, pstBuffer + iBufferPosition, iOverlappedWidth * sizeof(COLOR));
+    }
+
+    kUnlock(&pstWindow->stLock);
+
+    return TRUE;
+}
+
+extern unsigned char g_vbWallPaper[0];
+extern unsigned int size_g_vbWallPaper;
+
+void kDrawBackgroundImage(void)
+{
+    JPEG* pstJpeg;
+    COLOR* pstOutputBuffer;
+    WINDOWMANAGER* pstWindowManager;
+    int i, j, iMiddleX, iMiddleY, iScreenWidth, iScreenHeight;
+
+    pstWindowManager = kGetWindowManager();
+
+    pstJpeg = (JPEG*) kAllocateMemory(sizeof(JPEG));
+
+    if(kJPEGInit(pstJpeg, g_vbWallPaper, size_g_vbWallPaper) == FALSE)
+        return;
+    
+    pstOutputBuffer = (COLOR*) kAllocateMemory(pstJpeg->width * pstJpeg->height * sizeof(COLOR));
+
+    if(pstOutputBuffer == NULL)
+    {
+        kFreeMemory(pstJpeg);
+
+        return;
+    }
+
+    if(kJPEGDecode(pstJpeg, pstOutputBuffer) == FALSE)
+    {
+        kFreeMemory(pstOutputBuffer);
+        kFreeMemory(pstJpeg);
+
+        return;
+    }
+
+    iScreenWidth = kGetRectangleWidth(&(pstWindowManager->stScreenArea));
+    iScreenHeight = kGetRectangleHeight(&(pstWindowManager->stScreenArea));
+
+    iMiddleX = (iScreenWidth - pstJpeg->width) / 2; 
+    iMiddleY = (iScreenHeight - pstJpeg->height) / 2;
+
+    kBitBlt(pstWindowManager->qwBackgroundWindowID, iMiddleX, iMiddleY, pstOutputBuffer, pstJpeg->width, pstJpeg->height);
+
+    kFreeMemory(pstOutputBuffer);
+    kFreeMemory(pstJpeg);
 }
