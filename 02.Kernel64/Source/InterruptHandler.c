@@ -96,23 +96,33 @@ void kProcessLoadBalancing(int iIRQ)
 
 void kCommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode)
 {
-    char vcBuffer[3] = {
-        0,
-    };
+    char vcBuffer[100];
+    BYTE bAPICID;
+    TCB* pstTask;
+
+    bAPICID = kGetAPICID();
+    pstTask = kGetRunningTask(bAPICID);
 
     kPrintStringXY(0, 0, "===================================================");
     kPrintStringXY(0, 1, "                 Exception Occured!!               ");
-    kPrintStringXY(0, 2, "               Vector:        Core ID:             ");
+    kSPrintf(vcBuffer, "    Vector:%d     Core ID:0x%X    ErrorCode:0x%X   ", iVectorNumber, bAPICID, qwErrorCode);
+    kPrintStringXY(0, 2, vcBuffer);
+    kSPrintf(vcBuffer, "              Task ID:0x%Q", pstTask->stLink.qwID);
+    kPrintStringXY(0, 2, vcBuffer);
+    kPrintStringXY(0, 4, "===================================================");
 
-    vcBuffer[0] = '0' + iVectorNumber / 10;
-    vcBuffer[1] = '0' + iVectorNumber % 10;
-    kPrintStringXY(21, 2, vcBuffer);
-    kSPrintf(vcBuffer, "0x%X", kGetAPICID());
-    kPrintStringXY(40, 2, vcBuffer);
-    kPrintStringXY(0, 3, "===================================================");
+    if(pstTask->qwFlags & TASK_FLAGS_USERLEVEL)
+    {
+        kEndTask(pstTask->stLink.qwID);
 
-    while (1)
-        ;
+        while(1)
+            ;
+    }
+    else
+    {
+        while(1)
+            ;
+    }
 }
 
 void kCommonInterruptHandler(int iVectorNumber)

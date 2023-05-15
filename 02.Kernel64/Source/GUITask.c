@@ -377,7 +377,7 @@ static void kDrawMemoryInformation(QWORD qwWindowID, int iY, int iWindowWidth)
 
     kGetDynamicMemoryInformation(&qwDynamicMemoryStartAddress, &qwTemp, &qwTemp, &qwDynamicMemoryUsedSize);
 
-    kSPrintf(vcBuffer, "Used Size: %d KB        ", (qwDynamicMemoryUsedSize + qwDynamicMemoryStartAddress));
+    kSPrintf(vcBuffer, "Used Size: %d KB        ", (qwDynamicMemoryUsedSize + qwDynamicMemoryStartAddress) / 1024);
     kDrawText(qwWindowID, SYSTEMMONITOR_PROCESSOR_MARGIN + 10, iY + 21, RGB(0, 0, 0), WINDOW_COLOR_BACKGROUND, vcBuffer, kStrLen(vcBuffer));
 
     kDrawRect(qwWindowID, SYSTEMMONITOR_PROCESSOR_MARGIN, iY + 40, iWindowWidth - SYSTEMMONITOR_PROCESSOR_MARGIN, iY + SYSTEMMONITOR_MEMORY_HEIGHT - 32, RGB(0, 0, 0), FALSE);
