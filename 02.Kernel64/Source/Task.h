@@ -148,7 +148,7 @@ void kSetRunningTask(BYTE bAPICID, TCB* pstTask);
 TCB* kGetRunningTask(BYTE bAPICID);
 static TCB* kGetNextTaskToRun(BYTE bAPICID);
 static BOOL kAddTaskToReadyList(BYTE bAPICID, TCB* pstTask);
-void kSchedule(void);
+BOOL kSchedule(void);
 BOOL kScheduleInInterrupt(void);
 void kDecreaseProcessorTime(BYTE bAPICID);
 BOOL kIsProcessorTimeExpired(BYTE bAPICID);

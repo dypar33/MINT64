@@ -16,6 +16,7 @@
 #include "MPConfigurationTable.h"
 #include "Mouse.h"
 #include "WindowManagerTask.h"
+#include "SystemCall.h"
 
 void MainForApplicationProcessor(void);
 BOOL kChangeToMultiCoreMode(void);
@@ -82,7 +83,8 @@ void Main(void)
     {
         kSetCursor(45, iCursorY++);
         kPrintf("Fail\n");
-        while (1);
+        while (1)
+            ;
     }
 
     kPrintf("Mouse Activate And Queue Initialize.........[    ]");
@@ -136,6 +138,11 @@ void Main(void)
         kPrintf("Fail\n");
     }
 
+    kPrintf("System Call MSR Initialize..................[Pass]\n");
+    iCursorY++;
+
+    kInitializeSystemCall();
+
     kCreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, (QWORD)kIdleTask, kGetAPICID());
 
     if (*(BYTE *)VBE_STARTGRAPHICMODEFLAGADDRESS == 0)
@@ -177,6 +184,8 @@ void MainForApplicationProcessor()
     kInitializeLocalVectorTable();
 
     kEnableInterrupt();
+
+    kInitializeSystemCall();
 
     // kPrintf("Application Processor[APIC ID: %d] Is Activated\n", kGetAPICID());
 

@@ -387,7 +387,7 @@ BOOL kChangePriority(QWORD qwTaskID, BYTE bPriority)
     return TRUE;
 }
 
-void kSchedule()
+BOOL kSchedule()
 {
     TCB *pstRunningTask, *pstNextTask;
     BOOL bPreviousInterrupt;
@@ -850,6 +850,8 @@ void kIdleTask()
                     }
                     else
                     {
+                        if(pstTask->qwFlags & TASK_FLAGS_USERLEVEL)
+                            kFreeMemory(pstTask->pvMemoryAddress);
                     }
                 }
                 else if (pstTask->qwFlags & TASK_FLAGS_THREAD)

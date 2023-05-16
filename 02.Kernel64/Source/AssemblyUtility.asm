@@ -8,6 +8,7 @@ global kReadTSC
 global kSwitchContext, kHlt, kTestAndSet, kPause
 global kInitializeFPU, kSaveFPUContext, kLoadFPUContext, kSetTS, kClearTS
 global kEnableGlobalLocalAPIC
+global kReadMSR, kWriteMSR
 
 kHlt:
     hlt
@@ -249,4 +250,41 @@ kEnableGlobalLocalAPIC:
 
 kPause:
     pause
+    ret
+
+kReadMSR:
+    push rdx
+    push rax 
+    push rcx 
+    push rbx 
+
+    mov rbx, rdx 
+    mov rcx, rdi
+
+    rdmsr
+
+    mov qword [rsi], rdx
+    mov qword [rbx], rax
+
+    pop rbx
+    pop rcx
+    pop rax
+    pop rdx
+    
+    ret
+
+kWriteMSR:
+    push rdx
+    push rax
+    push rcx
+
+    mov rcx, rdi
+    mov rax, rdx
+    mov rdx, rsi
+    wrmsr
+
+    pop rcx
+    pop rax
+    pop rdx
+
     ret

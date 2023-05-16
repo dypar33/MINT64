@@ -16,6 +16,7 @@
 #include "IOAPIC.h"
 #include "InterruptHandler.h"
 #include "VBE.h"
+#include "SystemCall.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] = {
         {"help", "show help", kHelp},
@@ -48,6 +49,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] = {
         {"showintproccount", "show interrupt processing count", kShowInterruptProcessingCount},
         {"changeaffinity", "change task affinity\n                 usage: changeaffinity 1(ID) 0xFF(Affinity)", kChangeTaskAffinity},
         {"vbemodeinfo", "show VBE mode information", kShowVBEModeInfo},
+        {"testsystemcall", "test system call operation", kTestSystemCall},
 };
 
 // main loop
@@ -2267,4 +2269,17 @@ static void kShowVBEModeInfo(const char *pcParameterBuffer)
     kPrintf("Linear Red Mask Size: %d, Field Position: %d\n", pstModeInfo->bLinearRedMaskSize, pstModeInfo->bLinearRedFieldPosition);
     kPrintf("Linear Green Mask Size: %d, Field Position: %d\n", pstModeInfo->bLinearGreenMaskSize, pstModeInfo->bLinearGreenFieldPosition);
     kPrintf("Linear Blue Mask Size: %d, Field Position: %d\n", pstModeInfo->bLinearBlueMaskSize, pstModeInfo->bLinearBlueFieldPosition);
+}
+
+static void kTestSystemCall(const char *pcParameterBuffer)
+{
+    BYTE* pbUserMemory;
+
+    pbUserMemory = kAllocateMemory(0x1000);
+    if(pbUserMemory == NULL)
+        return;
+    
+    kMemCpy(pbUserMemory, kSystemCallTestTask, 0x1000);
+
+    kCreateTask(TASK_FLAGS_USERLEVEL | TASK_FLAGS_PROCESS, pbUserMemory, 0x1000, (QWORD) pbUserMemory, TASK_LOADBALANCINGID);
 }
