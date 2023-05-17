@@ -52,6 +52,8 @@ int GetTaskCount(BYTE bAPICID);
 BOOL IsTaskExist(QWORD qwID);
 QWORD GetProcessorLoad(BYTE bAPICID);
 BOOL ChangeProcessorAffinity(QWORD qwTaskID, BYTE bAffinity);
+QWORD ExecuteProgram(const char *pcFileName, const char *pcArgumentString, BYTE bAffinity);
+QWORD CreateThread(QWORD qwEntryPoint, QWORD qwArgument, BYTE bAffinity);
 
 QWORD GetBackgroundWindowID(void);
 void GetScreenArea(RECT *pstScreenArea);

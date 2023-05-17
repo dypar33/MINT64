@@ -17,39 +17,41 @@
 #include "InterruptHandler.h"
 #include "VBE.h"
 #include "SystemCall.h"
+#include "Loader.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] = {
-        {"help", "show help", kHelp},
-        {"clear", "clear screen", kCls},
-        {"totalram", "show total ram size", kShowTotalRAMSize},
-        {"shutdown", "shutdown and reboot os", kShutdown},
-        {"cpuspeed", "measure cpu speed", kMeasureCPUSpeed},
-        {"date", "show date and time", kShowDateAndTime},
-        {"changepriority", "change task priority\n                 usage: changepriority [ID] [Priority]", kChangeTaskPriority},
-        {"tasklist", "show task list\n", kShowTaskList},
-        {"killtask", "end task\n                 usage: killtask [id] or 0xffffffff(all)", kKillTask},
-        {"cpuload", "show processor load\n", kCPULoad},
-        {"showmatrix", "show matrix screen~~!!", kShowMatrix},
-        {"dynamicmeminfo", "show dynamic memory info", kShowDynamicMemoryInformation},
-        {"hddinfo", "show hdd info", kShowHDDInformation},
-        {"readsector", "read hdd sector\n                 usage: readsector 0(LBA) 10(count)\n", kReadSector},
-        {"writesector", "write hdd sector\n                 usage: writesector 0(LBA) 10(count)\n", kWriteSector},
-        {"mounthdd", "mount hdd", kMountHDD},
-        {"formathdd", "format hdd", kFormatHDD},
-        {"filesysteminfo", "show file system information", kShowFileSystemInformation},
-        {"createfile", "create file\n                 usage: createfile [file name]", kCreateFileInRootDirectory},
-        {"deletefile", "delete file\n                 usage: deletefile [file name]", kDeleteFileInRootDirectory},
-        {"ls", "show directory\n", kShowRootDirectory},
-        {"writefile", "write data to file\n                 usage: writefile [file name]", kWriteDataToFile},
-        {"readfile", "read data from  file\n                 usage: readfile [file name]", kReadDataFromFile},
-        {"flush", "flush file system cache", kFlushCache},
-        {"download", "download data from serial\n                 usage: download [file name]", kDownloadFile},
-        {"showmpinfo", "show mp configuration table information", kShowMPConfigurationTable},
-        {"showirqintinmap", "show irq->initin mapping table", kShowIRQINTINMappingTable},
-        {"showintproccount", "show interrupt processing count", kShowInterruptProcessingCount},
-        {"changeaffinity", "change task affinity\n                 usage: changeaffinity 1(ID) 0xFF(Affinity)", kChangeTaskAffinity},
-        {"vbemodeinfo", "show VBE mode information", kShowVBEModeInfo},
-        {"testsystemcall", "test system call operation", kTestSystemCall},
+    {"help", "show help", kHelp},
+    {"clear", "clear screen", kCls},
+    {"totalram", "show total ram size", kShowTotalRAMSize},
+    {"shutdown", "shutdown and reboot os", kShutdown},
+    {"cpuspeed", "measure cpu speed", kMeasureCPUSpeed},
+    {"date", "show date and time", kShowDateAndTime},
+    {"changepriority", "change task priority\n                 usage: changepriority [ID] [Priority]", kChangeTaskPriority},
+    {"tasklist", "show task list\n", kShowTaskList},
+    {"killtask", "end task\n                 usage: killtask [id] or 0xffffffff(all)", kKillTask},
+    {"cpuload", "show processor load\n", kCPULoad},
+    {"showmatrix", "show matrix screen~~!!", kShowMatrix},
+    {"dynamicmeminfo", "show dynamic memory info", kShowDynamicMemoryInformation},
+    {"hddinfo", "show hdd info", kShowHDDInformation},
+    {"readsector", "read hdd sector\n                 usage: readsector 0(LBA) 10(count)\n", kReadSector},
+    {"writesector", "write hdd sector\n                 usage: writesector 0(LBA) 10(count)\n", kWriteSector},
+    {"mounthdd", "mount hdd", kMountHDD},
+    {"formathdd", "format hdd", kFormatHDD},
+    {"filesysteminfo", "show file system information", kShowFileSystemInformation},
+    {"createfile", "create file\n                 usage: createfile [file name]", kCreateFileInRootDirectory},
+    {"deletefile", "delete file\n                 usage: deletefile [file name]", kDeleteFileInRootDirectory},
+    {"ls", "show directory\n", kShowRootDirectory},
+    {"writefile", "write data to file\n                 usage: writefile [file name]", kWriteDataToFile},
+    {"readfile", "read data from  file\n                 usage: readfile [file name]", kReadDataFromFile},
+    {"flush", "flush file system cache", kFlushCache},
+    {"download", "download data from serial\n                 usage: download [file name]", kDownloadFile},
+    {"showmpinfo", "show mp configuration table information", kShowMPConfigurationTable},
+    {"showirqintinmap", "show irq->initin mapping table", kShowIRQINTINMappingTable},
+    {"showintproccount", "show interrupt processing count", kShowInterruptProcessingCount},
+    {"changeaffinity", "change task affinity\n                 usage: changeaffinity 1(ID) 0xFF(Affinity)", kChangeTaskAffinity},
+    {"vbemodeinfo", "show VBE mode information", kShowVBEModeInfo},
+    {"testsystemcall", "test system call operation", kTestSystemCall},
+    {"exec", "execute application program\n                 usage: exec a.elf argument", kExecuteApplicationProgram},
 };
 
 // main loop
@@ -59,7 +61,7 @@ void kStartConsoleShell(void)
     int iCommandBufferIndex = 0;
     BYTE bKey;
     int iCursorX, iCursorY;
-    CONSOLEMANAGER* pstConsoleManager;
+    CONSOLEMANAGER *pstConsoleManager;
 
     pstConsoleManager = kGetConsoleManager();
 
@@ -69,7 +71,7 @@ void kStartConsoleShell(void)
     {
         bKey = kGetCh();
 
-        if(pstConsoleManager->bExit == TRUE)
+        if (pstConsoleManager->bExit == TRUE)
             break;
 
         if (bKey == KEY_BACKSPACE)
@@ -2273,13 +2275,40 @@ static void kShowVBEModeInfo(const char *pcParameterBuffer)
 
 static void kTestSystemCall(const char *pcParameterBuffer)
 {
-    BYTE* pbUserMemory;
+    BYTE *pbUserMemory;
 
     pbUserMemory = kAllocateMemory(0x1000);
-    if(pbUserMemory == NULL)
+    if (pbUserMemory == NULL)
         return;
-    
+
     kMemCpy(pbUserMemory, kSystemCallTestTask, 0x1000);
 
-    kCreateTask(TASK_FLAGS_USERLEVEL | TASK_FLAGS_PROCESS, pbUserMemory, 0x1000, (QWORD) pbUserMemory, TASK_LOADBALANCINGID);
+    kCreateTask(TASK_FLAGS_USERLEVEL | TASK_FLAGS_PROCESS, pbUserMemory, 0x1000, (QWORD)pbUserMemory, TASK_LOADBALANCINGID);
+}
+
+static void kExecuteApplicationProgram(const char *pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcFileName[512];
+    char vcArgumentString[1024];
+    QWORD qwID;
+
+    kInitializeParameter(&stList, pcParameterBuffer);
+
+    if (kGetNextParameter(&stList, vcFileName) == 0)
+    {
+        kPrintf("usage) exec a.elf argument\n");
+
+        return;
+    }
+
+    if (kGetNextParameter(&stList, vcArgumentString) == 0)
+    {
+        vcArgumentString[0] = '\0';
+    }
+
+    kPrintf("Execute Program... File [%s], Argument [%s]\n", vcFileName, vcArgumentString);
+
+    qwID = kExecuteProgram(vcFileName, vcArgumentString, TASK_LOADBALANCINGID);
+    kPrintf("Task ID = 0x%Q\n", qwID);
 }
