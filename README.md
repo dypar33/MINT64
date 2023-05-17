@@ -3,7 +3,8 @@ Studying 64bit os development
 
 
 ## Progress
-- 2022-11-05 / vol.1 Start!
+### vol.1
+- 2022-11-05 / Start!
 - 2022-11-07 / Chapter #1 ~ #4
 - 2022-11-08 / Chapter #5, #6 
 - 2022-11-10 / Chapter #7 ~ #9 
@@ -28,8 +29,10 @@ Studying 64bit os development
 - 2023-01-02 / Chapter #29
 - 2023-01-03 / Chapter #30
 - 2023-01-03 / Chapter #31
-- 2023-01-03 / vol.1 End
-- 2023-04-12 / vol.2 Start!
+- 2023-01-03 / End!
+
+### vol.2
+- 2023-04-12 / Start!
 - 2023-04-12 / Chapter #32
 - 2023-04-12 / Chapter #33
 - 2023-04-12 / Chapter #34
