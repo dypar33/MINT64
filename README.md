@@ -55,3 +55,4 @@ Studying 64bit os development
 - 2023-05-17 / Chapter #51
 - 2023-05-17 / Chapter #52
 - 2023-05-18 / Chapter #53
+- 2023-05-18 / Chapter #54

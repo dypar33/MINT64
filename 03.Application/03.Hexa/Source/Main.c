@@ -516,7 +516,7 @@ void DrawInformation(QWORD qwWindowID)
     sprintf(vcBuffer, "Level: %d, Score: %d\n", g_stGameInfo.qwLevel, g_stGameInfo.qwScore);
     iLength = strlen(vcBuffer);
 
-    DrawText(qwWindowID, (WINDOW_WIDTH - iLength * FONT_ENGLISHWIDTH) / 2, WINDOW_TITLEBAR_HEIGHT + 2, RGB(255, 255, 255), RGB(146, 184, 177), vcBuffer, strlen(vcBuffer));
+    DrawText(qwWindowID, (WINDOW_WIDTH - iLength * FONT_ENGLISHWIDTH) / 2, WINDOW_TITLEBAR_HEIGHT + 2, RGB(0, 0, 0), RGB(146, 184, 177), vcBuffer, strlen(vcBuffer));
 }
 
 void DrawGameArea(QWORD qwWindowID)
