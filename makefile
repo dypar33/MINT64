@@ -18,6 +18,7 @@ Kernel64:
 Disk.img: 00.BootLoader/BootLoader.bin 01.Kernel32/Kernel32.bin 02.Kernel64/Kernel64.bin
 	@echo Disk Image Build Start
 	python3 04.Utility/00.ImageMaker/ImageMaker.py 
+	cat Disk.img Package.img > DiskWithPackage.img
 	@echo Disk Image Build End
 
 Application:
@@ -31,3 +32,5 @@ clean:
 	make -C 02.Kernel64 clean
 	make -C 03.Application clean
 	rm -f Disk.img
+	rm -f Package.img
+	rm -f DiskWithPackage.img

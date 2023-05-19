@@ -58,7 +58,9 @@ RESET_DISK:
     mov es, si
     mov bx, 0x0000
 
-    mov di, word [TOTALSECTORCOUNT]
+    ;mov di, word [TOTALSECTORCOUNT]
+
+    mov di, 1146
 
 READ_DISK_DATA:
     ; di가 0이되면 다 읽은 것이다.

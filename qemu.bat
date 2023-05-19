@@ -1,0 +1,1 @@
+"C:\Program Files\qemu\qemu-system-x86_64" -L . -m 64 -fda "C:\Users\dyp4r\Documents\home\dev\redcat_study\OS_Development\DiskWithPackage.img"  -hda "C:\Program Files\qemu\HDD.img" -M pc -serial tcp::4444,server,nowait -smp 16,sockets=16

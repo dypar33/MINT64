@@ -52,6 +52,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] = {
     {"vbemodeinfo", "show VBE mode information", kShowVBEModeInfo},
     {"testsystemcall", "test system call operation", kTestSystemCall},
     {"exec", "execute application program\n                 usage: exec a.elf argument", kExecuteApplicationProgram},
+    {"installpackage", "install package to hdd", kInstallPackage},
 };
 
 // main loop
@@ -2311,4 +2312,61 @@ static void kExecuteApplicationProgram(const char *pcParameterBuffer)
 
     qwID = kExecuteProgram(vcFileName, vcArgumentString, TASK_LOADBALANCINGID);
     kPrintf("Task ID = 0x%Q\n", qwID);
+}
+
+static void kInstallPackage(const char *pcParameterBuffer)
+{
+    PACKAGEHEADER* pstHeader;
+    PACKAGEITEM* pstItem;
+    WORD wKernelTotalSectorCount;
+    int i;
+    FILE* fp;
+    QWORD qwDataAddress;
+
+    kPrintf("Package Install Start ...\n");
+
+    wKernelTotalSectorCount = *((WORD*) 0x7C05);
+
+    pstHeader = (PACKAGEHEADER*) ((QWORD) 0x10000 + wKernelTotalSectorCount * 512);
+
+    if(kMemCmp(pstHeader->vcSignature, PACKAGESIGNATURE, sizeof(pstHeader->vcSignature)) != 0)
+    {
+        kPrintf("Package Signature Invalid\n");
+
+        return;
+    }
+
+    qwDataAddress = (QWORD) pstHeader + pstHeader->dwHeaderSize;
+    pstItem = pstHeader->vstItem;
+
+    for(i = 0; i < pstHeader->dwHeaderSize / sizeof(PACKAGEITEM); i++)
+    {
+        kPrintf("[%d] file: %s, size: %d bytes\n", i + 1, pstItem[i].vcFileName, pstItem[i].dwFileLength);
+
+        fp = fopen(pstItem[i].vcFileName, "w");
+        if(fp == NULL)
+        {
+            kPrintf("%s file create fail\n", pstItem[i].vcFileName);
+
+            return;
+        }
+
+        if(fwrite((BYTE*) qwDataAddress, 1, pstItem[i].dwFileLength, fp) != pstItem[i].dwFileLength)
+        {
+            kPrintf("write fail\n");
+            fclose(fp);
+
+            kFlushFileSystemCache();
+
+            return;
+        }
+
+        fclose(fp);
+
+        qwDataAddress += pstItem[i].dwFileLength;
+    }
+
+    kPrintf("Package Install Complete\n");
+
+    kFlushFileSystemCache();
 }
